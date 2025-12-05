@@ -1,0 +1,174 @@
+@import url("https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css");
+
+/* CONTENEDOR PRINCIPAL */
+.sidebarWrapper {
+  display: flex;
+  background: #fff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.iconBar {
+  width: 78px;
+  background: #f8f8ff;
+  border-right: 1px solid #ece9f7;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+  align-items: center;
+  gap: 1rem;
+}
+
+.iconButton {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: transparent;
+  border: none;
+  font-size: 1.6rem;
+  color: #9aa4b2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.18s;
+}
+
+.iconButton:hover {
+  background: #efeaff;
+  color: #7c3aed;
+}
+
+.iconActive {
+  background: #7c3aed;
+  color: #fff;
+}
+
+/* ---------------------------------------- */
+/* PANEL DE CATEGORÍAS (DERECHA) */
+/* ---------------------------------------- */
+
+.menuPanel {
+  width: 260px;
+  padding: 1.5rem;
+  background: #fff;
+  border-right: 1px solid #ece9f7;
+}
+
+.panelTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+/* LISTA DEL PANEL */
+
+.panelList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.panelItem + .panelItem {
+  margin-top: 0.35rem;
+}
+
+.panelButton {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: #4b5563;
+  transition: 0.18s;
+}
+
+.panelButton:hover {
+  background: #f3f0ff;
+}
+
+.panelItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.panelItemLeft i {
+  font-size: 1.4rem;
+  color: #8086a3;
+}
+
+/* BADGES */
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badgePurple {
+  background: #eee5ff;
+  color: #7c3aed;
+}
+
+.badgeGreen {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badgeYellow {
+  background: #fef9c3;
+  color: #ca8a04;
+}
+
+.badgeBlue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.badgeRed {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* BOTÓN DE COLAPSO */
+.collapseButton {
+  margin-top: auto;
+  width: 48px;
+  height: 48px;
+  border: none;
+  background: #f1f1ff;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #7c3aed;
+  font-size: 1.4rem;
+  transition: background 0.2s;
+}
+
+.collapseButton:hover {
+  background: #e6deff;
+}hamburger
+
+.menuPanel {
+  width: 260px;
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+.menuPanel.closed {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+}
+
+.menuPanel.open {
+  width: 260px;
+  opacity: 1;
+}

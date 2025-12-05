@@ -1,0 +1,121 @@
+/* === ANIMACIÓN SLIDE DOWN SUAVE === */
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px);
+    max-height: 0;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 600px; /* Altura máxima segura */
+  }
+}
+
+@keyframes slideUp {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 600px;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px);
+    max-height: 0;
+  }
+}
+
+/* Aparece suave */
+.animate-slideDown {
+  animation: slideDown 1s ease-out forwards;
+  overflow: hidden;
+}
+
+/* Desaparece suave */
+.animate-slideUp {
+  animation: slideUp 1s ease-in forwards;
+  overflow: hidden;
+}
+
+/* NAVBAR: texto siempre negro */
+nav li,
+nav li:visited,
+nav li:active,
+nav li:focus,
+nav li:focus-visible,
+nav li:focus-within {
+  color: black !important;
+}
+
+/* Icons del navbar */
+nav svg {
+  color: black !important;
+}
+
+/* Hover sigue siendo naranja */
+nav li:hover,
+nav svg:hover {
+  color: #ea580c !important; /* naranja de Tailwind: orange-600 */
+}
+
+nav h1,
+nav h1 *,
+nav h2,
+nav h2 * {
+  color: black !important;
+}
+
+nav .text-orange-600 {
+  color: #ea580c !important;
+}
+
+/* === SLIDER DE PRODUCTOS RELACIONADOS === */
+
+.slider-arrow {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  transition: all 0.25s ease;
+}
+
+.slider-arrow:hover {
+  background: white;
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.product-card-related {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 22px;
+  transition: all 0.3s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.product-card-related:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  border-color: #cbd5e1;
+}
+
+.product-card-related img {
+  transition: transform 0.4s ease;
+}
+
+.product-card-related:hover img {
+  transform: scale(1.05);
+}
+
+.btn-related-add {
+  background: #0f172a;
+  color: white;
+  transition: all 0.25s ease;
+}
+
+.btn-related-add:hover {
+  background: #1e293b;
+  transform: scale(1.05);
+}
+
+.btn-related-add:active {
+  transform: scale(0.95);
+}

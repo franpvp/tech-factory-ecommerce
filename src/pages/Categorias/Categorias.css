@@ -1,0 +1,9 @@
+/* TITULOS FUERA DEL NAVBAR SIEMPRE NEGROS */
+main h1,
+main h1 *,
+section h1,
+section h1 *,
+div h1,
+div h1 * {
+  color: black !important;
+}

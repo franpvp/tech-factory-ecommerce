@@ -7,15 +7,32 @@ export default function Login() {
   const { instance } = useMsal();
   const navigate = useNavigate();
 
+  // --- LOGIN NORMAL → HOME ---
   const handleMicrosoftLogin = () => {
+    sessionStorage.setItem("postLoginRedirect", "/"); // <-- intención
+
     instance.loginRedirect({
-      redirectUri: "/",
+      redirectUri: "/", // <-- SIEMPRE LA RAÍZ
     });
   };
 
+  // --- LOGIN ADMIN → /admin ---
+  const handleMicrosoftAdminLogin = () => {
+    sessionStorage.setItem("postLoginRedirect", "/admin"); // <-- intención
+
+    instance.loginRedirect({
+      redirectUri: "/", // <-- SIEMPRE LA RAÍZ
+    });
+  };
+
+  // --- REDIRECCIÓN DESPUÉS DEL LOGIN ---
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/");
+      const target = sessionStorage.getItem("postLoginRedirect") || "/";
+
+      sessionStorage.removeItem("postLoginRedirect");
+
+      navigate(target);
     }
   }, [isAuthenticated]);
 
@@ -65,6 +82,7 @@ export default function Login() {
           </button>
         </form>
 
+        {/* BOTÓN MICROSOFT LOGIN NORMAL */}
         <div className="mt-6">
           <button
             onClick={handleMicrosoftLogin}
@@ -75,6 +93,16 @@ export default function Login() {
               className="w-6 h-6"
             />
             Iniciar sesión con Microsoft
+          </button>
+        </div>
+
+        {/* BOTÓN ADMIN LOGIN */}
+        <div className="mt-3">
+          <button
+            onClick={handleMicrosoftAdminLogin}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 rounded-xl font-semibold transition active:scale-95 shadow-sm"
+          >
+            Acceso al Panel de Administración
           </button>
         </div>
 

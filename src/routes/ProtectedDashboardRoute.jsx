@@ -1,7 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useAzureUser } from "../hooks/useAzureUser";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedDashboardRoute({ children }) {
   const user = useAzureUser();
 
   if (!user || !user.isAuthenticated) {

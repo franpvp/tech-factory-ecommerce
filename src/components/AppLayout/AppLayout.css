@@ -1,0 +1,28 @@
+.appRoot {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f3f4f6;
+}
+
+.appBody {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 1.5rem;
+  overflow: auto;
+}
+
+@media (max-width: 768px) {
+  .appBody {
+    flex-direction: column;
+  }
+
+  .mainContent {
+    padding: 1rem;
+  }
+}
