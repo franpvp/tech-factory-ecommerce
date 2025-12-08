@@ -4,9 +4,13 @@ import {
   CheckCircleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
+import ObtenerClientesService from "../../../services/ObtenerClientesService";
 
-export default function AdminUsers() {
+export default function AdminUsuarios() {
   const [usuarios, setUsuarios] = useState([]);
+
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
 
   const [editUserId, setEditUserId] = useState(null);
   const [editForm, setEditForm] = useState({
@@ -24,42 +28,50 @@ export default function AdminUsers() {
     telefono: "",
     direccion: "",
     ciudad: "",
-    rol: "USER",
+    rol: "CLIENTE",
   });
 
   const [errors, setErrors] = useState({});
 
-  // DATOS TEMPORALES
+  // ==============================
+  // CARGAR CLIENTES DESDE BACKEND
+  // ==============================
   useEffect(() => {
-    setUsuarios([
-      {
-        id: 1,
-        idUsuario: 101,
-        nombre: "Francisca",
-        apellido: "Valdivia",
-        email: "fran@empresa.com",
-        telefono: "987654321",
-        direccion: "Av. Siempre Viva 123",
-        ciudad: "Santiago",
-        fechaRegistro: "2024-12-01",
-        rol: "ADMIN",
-      },
-      {
-        id: 2,
-        idUsuario: 102,
-        nombre: "Juan",
-        apellido: "Perez",
-        email: "juan@empresa.com",
-        telefono: "945612378",
-        direccion: "Calle Central 456",
-        ciudad: "Valparaíso",
-        fechaRegistro: "2024-12-02",
-        rol: "USER",
-      },
-    ]);
+    const cargarClientes = async () => {
+      try {
+        setLoading(true);
+        setApiError(null);
+
+        const data = await ObtenerClientesService();
+
+        const mapeados = data.map((c) => ({
+          id: c.id,
+          idUsuario: c.usuario?.id ?? c.idUsuario ?? null,
+          nombre: c.nombre,
+          apellido: c.apellido,
+          email: c.usuario?.email ?? c.email ?? "",
+          telefono: c.telefono,
+          direccion: c.direccion,
+          ciudad: c.ciudad,
+          fechaRegistro: (c.fechaRegistro || "").slice(0, 10),
+          rol: c.usuario?.tipoUsuario?.nombreTipo ?? c.rol ?? "CLIENTE",
+        }));
+
+        setUsuarios(mapeados);
+      } catch (err) {
+        console.error("Error cargando clientes:", err);
+        setApiError("No se pudieron cargar los usuarios. Intenta nuevamente.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarClientes();
   }, []);
 
+  // ==============================
   // VALIDACIÓN POR CAMPO
+  // ==============================
   const validateField = (name, value) => {
     let msg = "";
 
@@ -88,7 +100,7 @@ export default function AdminUsers() {
     return msg;
   };
 
-  // HANDLE CHANGE — valida en tiempo real
+  // HANDLE CHANGE — valida en tiempo real (CREACIÓN)
   const handleCreateChange = (e) => {
     const { name, value } = e.target;
 
@@ -103,7 +115,8 @@ export default function AdminUsers() {
     });
   };
 
-  // CREAR USUARIO
+  // CREAR USUARIO (por ahora solo en memoria;
+  // luego se puede conectar con POST al backend)
   const crearUsuario = (e) => {
     e.preventDefault();
 
@@ -143,14 +156,14 @@ export default function AdminUsers() {
       telefono: "",
       direccion: "",
       ciudad: "",
-      rol: "USER",
+      rol: "CLIENTE",
     });
 
     setErrors({});
     setCreateOpen(false);
   };
 
-  // EDICIÓN
+  // EDICIÓN EN TABLA
   const comenzarEdicion = (u) => {
     setEditUserId(u.id);
     setEditForm({
@@ -184,7 +197,6 @@ export default function AdminUsers() {
   };
 
   const cancelarEdicion = () => setEditUserId(null);
-
   return (
     <div>
       {/* HEADER */}
@@ -211,113 +223,127 @@ export default function AdminUsers() {
         </button>
       </div>
 
+      {/* ESTADO CARGA / ERROR */}
+      {loading && (
+        <p className="mb-4 text-sm text-slate-500">Cargando usuarios...</p>
+      )}
+
+      {apiError && (
+        <p className="mb-4 text-sm text-red-500">{apiError}</p>
+      )}
+
       {/* TABLA */}
-      <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-x-auto">
-        <table className="w-full text-left min-w-[900px]">
-          <thead>
-            <tr className="text-slate-800 border-b bg-slate-100/80">
-              <th className="py-3 px-2 font-semibold text-sm">ID</th>
-              <th className="py-3 px-2 font-semibold text-sm">ID Usuario</th>
-              <th className="py-3 px-2 font-semibold text-sm">Nombre</th>
-              <th className="py-3 px-2 font-semibold text-sm">Apellido</th>
-              <th className="py-3 px-2 font-semibold text-sm">Email</th>
-              <th className="py-3 px-2 font-semibold text-sm">Teléfono</th>
-              <th className="py-3 px-2 font-semibold text-sm">Dirección</th>
-              <th className="py-3 px-2 font-semibold text-sm">Ciudad</th>
-              <th className="py-3 px-2 font-semibold text-sm">Fecha Registro</th>
-              <th className="py-3 px-2 font-semibold text-sm text-center">Acciones</th>
-            </tr>
-          </thead>
-
-          <tbody className="text-slate-900">
-            {usuarios.map((u) => (
-              <tr key={u.id} className="border-b hover:bg-slate-50 transition">
-                <td className="py-4 px-2 text-sm">{u.id}</td>
-                <td className="px-2 text-sm">{u.idUsuario}</td>
-                <td className="px-2 text-sm font-medium">{u.nombre}</td>
-                <td className="px-2 text-sm">{u.apellido}</td>
-                <td className="px-2 text-sm">{u.email}</td>
-
-                {/* EDICIÓN */}
-                <td className="px-2 text-sm">
-                  {editUserId === u.id ? (
-                    <input
-                      type="text"
-                      name="telefono"
-                      value={editForm.telefono}
-                      onChange={handleChange}
-                      className="border rounded px-2 py-1 w-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  ) : (
-                    u.telefono
-                  )}
-                </td>
-
-                <td className="px-2 text-sm">
-                  {editUserId === u.id ? (
-                    <input
-                      type="text"
-                      name="direccion"
-                      value={editForm.direccion}
-                      onChange={handleChange}
-                      className="border rounded px-2 py-1 w-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  ) : (
-                    u.direccion
-                  )}
-                </td>
-
-                <td className="px-2 text-sm">
-                  {editUserId === u.id ? (
-                    <input
-                      type="text"
-                      name="ciudad"
-                      value={editForm.ciudad}
-                      onChange={handleChange}
-                      className="border rounded px-2 py-1 w-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  ) : (
-                    u.ciudad
-                  )}
-                </td>
-
-                <td className="px-2 text-sm">{u.fechaRegistro}</td>
-
-                <td className="px-2 text-center">
-                  {editUserId === u.id ? (
-                    <div className="flex justify-center gap-3">
-                      <button
-                        onClick={guardarCambios}
-                        className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition"
-                        title="Guardar cambios"
-                      >
-                        <CheckCircleIcon className="w-5 h-5" />
-                      </button>
-
-                      <button
-                        onClick={cancelarEdicion}
-                        className="p-2 bg-slate-600 text-white rounded-full hover:bg-slate-700 transition"
-                        title="Cancelar edición"
-                      >
-                        <XCircleIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => comenzarEdicion(u)}
-                      className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
-                      title="Editar usuario"
-                    >
-                      <PencilSquareIcon className="w-5 h-5" />
-                    </button>
-                  )}
-                </td>
+      {!loading && (
+        <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full text-left min-w-[900px]">
+            <thead>
+              <tr className="text-slate-800 border-b bg-slate-100/80">
+                <th className="py-3 px-2 font-semibold text-sm">ID</th>
+                <th className="py-3 px-2 font-semibold text-sm">ID Usuario</th>
+                <th className="py-3 px-2 font-semibold text-sm">Nombre</th>
+                <th className="py-3 px-2 font-semibold text-sm">Apellido</th>
+                <th className="py-3 px-2 font-semibold text-sm">Email</th>
+                <th className="py-3 px-2 font-semibold text-sm">Teléfono</th>
+                <th className="py-3 px-2 font-semibold text-sm">Dirección</th>
+                <th className="py-3 px-2 font-semibold text-sm">Ciudad</th>
+                <th className="py-3 px-2 font-semibold text-sm">Fecha Registro</th>
+                <th className="py-3 px-2 font-semibold text-sm text-center">
+                  Acciones
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
 
+            <tbody className="text-slate-900">
+              {usuarios.map((u) => (
+                <tr key={u.id} className="border-b hover:bg-slate-50 transition">
+                  <td className="py-4 px-2 text-sm">{u.id}</td>
+                  <td className="px-2 text-sm">{u.idUsuario}</td>
+                  <td className="px-2 text-sm font-medium">{u.nombre}</td>
+                  <td className="px-2 text-sm">{u.apellido}</td>
+                  <td className="px-2 text-sm">{u.email}</td>
+
+                  {/* EDICIÓN EN CELDAS */}
+                  <td className="px-2 text-sm">
+                    {editUserId === u.id ? (
+                      <input
+                        type="text"
+                        name="telefono"
+                        value={editForm.telefono}
+                        onChange={handleChange}
+                        className="border rounded px-2 py-1 w-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    ) : (
+                      u.telefono
+                    )}
+                  </td>
+
+                  <td className="px-2 text-sm">
+                    {editUserId === u.id ? (
+                      <input
+                        type="text"
+                        name="direccion"
+                        value={editForm.direccion}
+                        onChange={handleChange}
+                        className="border rounded px-2 py-1 w-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    ) : (
+                      u.direccion
+                    )}
+                  </td>
+
+                  <td className="px-2 text-sm">
+                    {editUserId === u.id ? (
+                      <input
+                        type="text"
+                        name="ciudad"
+                        value={editForm.ciudad}
+                        onChange={handleChange}
+                        className="border rounded px-2 py-1 w-full text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                      />
+                    ) : (
+                      u.ciudad
+                    )}
+                  </td>
+
+                  <td className="px-2 text-sm">{u.fechaRegistro}</td>
+
+                  <td className="px-2 text-center">
+                    {editUserId === u.id ? (
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={guardarCambios}
+                          className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition"
+                          title="Guardar cambios"
+                        >
+                          <CheckCircleIcon className="w-5 h-5" />
+                        </button>
+
+                        <button
+                          onClick={cancelarEdicion}
+                          className="p-2 bg-slate-600 text-white rounded-full hover:bg-slate-700 transition"
+                          title="Cancelar edición"
+                        >
+                          <XCircleIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => comenzarEdicion(u)}
+                        className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
+                        title="Editar usuario"
+                      >
+                        <PencilSquareIcon className="w-5 h-5" />
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* MODAL CREACIÓN */}
       {createOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 relative text-slate-900">
@@ -346,7 +372,11 @@ export default function AdminUsers() {
                     value={createForm.nombre}
                     onChange={handleCreateChange}
                     className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none 
-                      ${errors.nombre ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-orange-500"}`}
+                      ${
+                        errors.nombre
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-orange-500"
+                      }`}
                   />
                   {errors.nombre && (
                     <p className="text-red-600 text-xs mt-1">{errors.nombre}</p>
@@ -363,7 +393,11 @@ export default function AdminUsers() {
                     value={createForm.apellido}
                     onChange={handleCreateChange}
                     className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none 
-                      ${errors.apellido ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-orange-500"}`}
+                      ${
+                        errors.apellido
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-orange-500"
+                      }`}
                   />
                   {errors.apellido && (
                     <p className="text-red-600 text-xs mt-1">{errors.apellido}</p>
@@ -383,7 +417,11 @@ export default function AdminUsers() {
                   value={createForm.email}
                   onChange={handleCreateChange}
                   className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none 
-                    ${errors.email ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-orange-500"}`}
+                    ${
+                      errors.email
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-slate-300 focus:ring-orange-500"
+                    }`}
                 />
                 {errors.email && (
                   <p className="text-red-600 text-xs mt-1">{errors.email}</p>
@@ -403,7 +441,11 @@ export default function AdminUsers() {
                     value={createForm.telefono}
                     onChange={handleCreateChange}
                     className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none 
-                      ${errors.telefono ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-orange-500"}`}
+                      ${
+                        errors.telefono
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-orange-500"
+                      }`}
                   />
                   {errors.telefono && (
                     <p className="text-red-600 text-xs mt-1">{errors.telefono}</p>
@@ -420,7 +462,11 @@ export default function AdminUsers() {
                     value={createForm.ciudad}
                     onChange={handleCreateChange}
                     className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none 
-                      ${errors.ciudad ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-orange-500"}`}
+                      ${
+                        errors.ciudad
+                          ? "border-red-500 focus:ring-red-500"
+                          : "border-slate-300 focus:ring-orange-500"
+                      }`}
                   />
                   {errors.ciudad && (
                     <p className="text-red-600 text-xs mt-1">{errors.ciudad}</p>
@@ -440,7 +486,11 @@ export default function AdminUsers() {
                   value={createForm.direccion}
                   onChange={handleCreateChange}
                   className={`w-full border rounded-lg px-3 py-2 text-sm focus:outline-none 
-                    ${errors.direccion ? "border-red-500 focus:ring-red-500" : "border-slate-300 focus:ring-orange-500"}`}
+                    ${
+                      errors.direccion
+                        ? "border-red-500 focus:ring-red-500"
+                        : "border-slate-300 focus:ring-orange-500"
+                    }`}
                 />
                 {errors.direccion && (
                   <p className="text-red-600 text-xs mt-1">{errors.direccion}</p>

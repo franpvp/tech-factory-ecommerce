@@ -55,7 +55,6 @@ export default function Despacho() {
     return regionSeleccionada ? regionSeleccionada.comunas : [];
   }, [form.region]);
 
-  // Normalizar teléfono → quitar +56 / 56 / 569 y dejar máx 9 dígitos
   const normalizarTelefono = (value) => {
     let digits = value.replace(/\D/g, "");
 
@@ -110,7 +109,6 @@ export default function Despacho() {
 
   const continuar = () => {
     if (!validate()) return;
-    // Más adelante podrías guardar despacho + totales en contexto
     navigate("/pago");
   };
 

@@ -16,6 +16,7 @@ export default function AdminLayout() {
             <AdminLink to="/admin/usuarios" label="Usuarios" />
             <AdminLink to="/admin/roles" label="Roles" />
             <AdminLink to="/admin/categorias" label="Categorías" /> 
+            <AdminLink to="/admin/inventario" label="Inventario" /> 
         </nav>
       </aside>
 

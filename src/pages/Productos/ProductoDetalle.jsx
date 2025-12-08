@@ -12,64 +12,66 @@ export default function ProductoDetalle() {
   const [producto, setProducto] = useState(null);
   const [loading, setLoading] = useState(true);
   const [imagenSeleccionada, setImagenSeleccionada] = useState("");
+  const [related, setRelated] = useState([]);
 
   const scrollRef = useRef(null);
 
-  const productosMock = [
-    {
-      idProducto: 1,
-      nombre: "RTX 5090 Gaming Trio",
-      precio: 1299990,
-      descripcion:
-        "La NVIDIA RTX 5090 es una GPU ultra potente para jugadores y creadores.",
-      specs: ["24GB GDDR7", "18.432 CUDA", "Boost 3.2GHz", "DLSS 4.0"],
-      imagenUrl:
-        "https://techfactory-product-images.s3.amazonaws.com/tarjetas-graficas-img/5090.jpg",
-      imagenesExtras: [
-        "https://techfactory-product-images.s3.amazonaws.com/tarjetas-graficas-img/5090-1.jpg",
-        "https://techfactory-product-images.s3.amazonaws.com/tarjetas-graficas-img/5090-2.jpg",
-      ],
-    },
-  ];
+  const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS; 
+  // ej: http://localhost:8084/api/v1/productos
 
-  const relatedMock = [
-    {
-      idProducto: 5,
-      nombre: "RTX 4080 Super",
-      precio: 899990,
-      imagenUrl:
-        "https://techfactory-product-images.s3.amazonaws.com/tarjetas-graficas-img/4080.jpg",
-    },
-    {
-      idProducto: 6,
-      nombre: "Ryzen 9 7950X3D",
-      precio: 679990,
-      imagenUrl:
-        "https://techfactory-product-images.s3.amazonaws.com/procesadores/7950x3d.jpg",
-    },
-    {
-      idProducto: 7,
-      nombre: "SSD NVMe 2TB Gen5",
-      precio: 249990,
-      imagenUrl:
-        "https://techfactory-product-images.s3.amazonaws.com/almacenamiento/nvme2tb.jpg",
-    },
-    {
-      idProducto: 8,
-      nombre: "Fuente Corsair 1000W Gold",
-      precio: 169990,
-      imagenUrl:
-        "https://techfactory-product-images.s3.amazonaws.com/fuentes/psu1000w.jpg",
-    },
-  ];
-
+  // =======================================
+  // 1. FETCH DEL PRODUCTO POR ID
+  // =======================================
   useEffect(() => {
-    const prod = productosMock.find((p) => p.idProducto == id);
-    setProducto(prod);
-    setImagenSeleccionada(prod?.imagenUrl);
-    setLoading(false);
+    async function fetchProducto() {
+      try {
+        const res = await fetch(`${endpoint}/${id}`);
+        if (!res.ok) throw new Error("Producto no encontrado");
+
+        const data = await res.json();
+
+        setProducto(data);
+        setImagenSeleccionada(data.imagenUrl);
+
+      } catch (error) {
+        console.error("Error cargando producto:", error);
+        setProducto(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProducto();
   }, [id]);
 
+  // =======================================
+  // 2. FETCH DE PRODUCTOS RELACIONADOS
+  // =======================================
+  useEffect(() => {
+    async function fetchRelacionados() {
+      try {
+        const res = await fetch(endpoint);
+        const all = await res.json();
+
+        if (!producto) return;
+
+        // Relacionados → misma categoría, distinto ID
+        const filtrados = all.filter(
+          (p) => p.idCategoria === producto.idCategoria && p.id !== producto.id
+        );
+
+        setRelated(filtrados.slice(0, 10)); // muestra máximo 10
+      } catch (e) {
+        console.error("Error cargando relacionados:", e);
+      }
+    }
+
+    if (producto) fetchRelacionados();
+  }, [producto]);
+
+  // =======================================
+  // 3. AUTO-SLIDER MINI
+  // =======================================
   useEffect(() => {
     const slider = scrollRef.current;
     if (!slider) return;
@@ -91,9 +93,12 @@ export default function ProductoDetalle() {
     return () => clearInterval(interval);
   }, []);
 
+  // =======================================
+  // 4. ESTADOS DE CARGA / ERROR
+  // =======================================
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-100 pt-24 flex justify-center items-center">
+      <div className="min-h-screen bg-slate-100 flex justify-center items-center pt-24">
         <p className="text-slate-600">Cargando producto...</p>
       </div>
     );
@@ -101,18 +106,24 @@ export default function ProductoDetalle() {
 
   if (!producto) {
     return (
-      <div className="min-h-screen bg-slate-100 pt-24 flex justify-center items-center">
+      <div className="min-h-screen bg-slate-100 flex justify-center items-center pt-24">
         <p className="text-red-600 font-semibold">Producto no encontrado</p>
       </div>
     );
   }
 
+  // =======================================
+  // 5. RENDER PRINCIPAL
+  // =======================================
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <Navbar />
 
       <main className="pt-[90px] max-w-6xl mx-auto px-4 pb-20">
+        {/* CONTENEDOR PRINCIPAL */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+          
+          {/* IMAGEN PRINCIPAL */}
           <div className="flex flex-col gap-4">
             <img
               src={imagenSeleccionada}
@@ -139,6 +150,7 @@ export default function ProductoDetalle() {
             </div>
           </div>
 
+          {/* INFO PRODUCTO */}
           <div className="flex flex-col justify-between">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold mb-3">
@@ -154,11 +166,12 @@ export default function ProductoDetalle() {
               </p>
             </div>
 
+            {/* BOTONES */}
             <div className="mt-6 flex flex-col gap-3">
               <button
                 onClick={() =>
                   addToCart({
-                    idProducto: producto.idProducto,
+                    idProducto: producto.id,
                     nombre: producto.nombre,
                     precio: producto.precio,
                     imagenUrl: producto.imagenUrl,
@@ -170,11 +183,10 @@ export default function ProductoDetalle() {
                 Agregar al carrito 🛒
               </button>
 
-              {/* BOTÓN COMPRAR AHORA */}
               <button
                 onClick={() => {
                   addToCart({
-                    idProducto: producto.idProducto,
+                    idProducto: producto.id,
                     nombre: producto.nombre,
                     precio: producto.precio,
                     imagenUrl: producto.imagenUrl,
@@ -190,12 +202,15 @@ export default function ProductoDetalle() {
           </div>
         </div>
 
+        {/* ESPECIFICACIONES */}
         <section className="mt-14 bg-white rounded-3xl shadow-lg border p-8">
           <h2 className="text-xl font-bold mb-4">Especificaciones</h2>
           <ul className="list-disc list-inside text-slate-700 space-y-1">
-            {producto.specs.map((s, i) => (
-              <li key={i}>{s}</li>
-            ))}
+            {(producto.specs || ["Sin especificaciones disponibles"]).map(
+              (s, i) => (
+                <li key={i}>{s}</li>
+              )
+            )}
           </ul>
         </section>
 
@@ -208,31 +223,26 @@ export default function ProductoDetalle() {
             onMouseEnter={() => (scrollRef.current.paused = true)}
             onMouseLeave={() => (scrollRef.current.paused = false)}
           >
-            {/* FLECHA IZQUIERDA */}
             <button
               onClick={() =>
                 scrollRef.current.scrollBy({ left: -300, behavior: "smooth" })
               }
               className="slider-arrow absolute left-0 top-1/2 -translate-y-1/2 
-                        rounded-full w-12 h-12 flex items-center justify-center z-20 text-xl"
+                         rounded-full w-12 h-12 flex items-center justify-center z-20 text-xl"
             >
               ‹
             </button>
 
-            {/* SLIDER */}
             <div
               ref={scrollRef}
               className="flex gap-6 overflow-x-auto scroll-smooth scrollbar-hide px-2 py-4"
             >
-              {relatedMock.map((item) => (
+              {related.map((item) => (
                 <div
-                  key={item.idProducto}
+                  key={item.id}
                   className="product-card-related min-w-[260px] overflow-hidden"
                 >
-                  <img
-                    src={item.imagenUrl}
-                    className="h-40 w-full object-cover"
-                  />
+                  <img src={item.imagenUrl} className="h-40 w-full object-cover" />
 
                   <div className="p-4">
                     <h3 className="font-semibold text-sm">{item.nombre}</h3>
@@ -243,7 +253,7 @@ export default function ProductoDetalle() {
                     <button
                       onClick={() =>
                         addToCart({
-                          idProducto: item.idProducto,
+                          idProducto: item.id,
                           nombre: item.nombre,
                           precio: item.precio,
                           imagenUrl: item.imagenUrl,
@@ -259,13 +269,12 @@ export default function ProductoDetalle() {
               ))}
             </div>
 
-            {/* FLECHA DERECHA */}
             <button
               onClick={() =>
                 scrollRef.current.scrollBy({ left: 300, behavior: "smooth" })
               }
               className="slider-arrow absolute right-0 top-1/2 -translate-y-1/2 
-                        rounded-full w-12 h-12 flex items-center justify-center z-20 text-xl"
+                         rounded-full w-12 h-12 flex items-center justify-center z-20 text-xl"
             >
               ›
             </button>

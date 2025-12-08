@@ -31,7 +31,6 @@ export default function AdminHome() {
       <h1 className="text-3xl font-bold mb-1">Panel de Administración</h1>
       <p className="text-slate-400 mb-8">Selecciona una sección del menú lateral.</p>
 
-      {/* GRID DE CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {cards.map((c) => (
           <div
@@ -64,7 +63,6 @@ export default function AdminHome() {
               </div>
             </div>
 
-            {/* TREND */}
             <p
               className={`mt-4 text-sm ${
                 c.trend.startsWith("+")

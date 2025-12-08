@@ -6,300 +6,343 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  getCategorias,
+  createCategoria,
+  updateCategoria,
+  deleteCategoria,
+} from "../../../services/CategoriasService";
+
 export default function AdminCategorias() {
   const [categorias, setCategorias] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
+
   const [editId, setEditId] = useState(null);
   const [formEdit, setFormEdit] = useState({
     nombre: "",
     descripcion: "",
+    nombreDirectorio: ""
   });
 
-  // Modal Crear
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({
     nombre: "",
     descripcion: "",
+    nombreDirectorio: ""
   });
 
-  // Datos temporales
+  // SIMULACIÓN: estos son los directorios válidos del bucket
+  const directoriosBucket = [
+    "tarjetas-graficas-img/",
+    "procesadores-img/",
+    "placas-madre-img/",
+    "perifericos-img/",
+    "almacenamiento-img/",
+  ];
+
   useEffect(() => {
-    setCategorias([
-      { id: 1, nombre: "Teclados Gamer", descripcion: "Teclados mecánicos y RGB" },
-      { id: 2, nombre: "Monitores", descripcion: "Pantallas gamer y altas tasas de refresco" },
-      { id: 3, nombre: "Periféricos RGB", descripcion: "Mouse, pads, luces y accesorios" },
-    ]);
+    const cargar = async () => {
+      try {
+        const data = await getCategorias();
+
+        const mapped = data.map((c) => ({
+          id: c.id,
+          nombre: c.nombre,
+          descripcion: c.descripcion,
+          nombreDirectorio: c.nombreDirectorio
+        }));
+
+        setCategorias(mapped);
+      } catch (error) {
+        setApiError("No se pudieron cargar las categorías");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargar();
   }, []);
 
-  // -------------------------------
-  // EDITAR CATEGORÍA
-  // -------------------------------
   const startEdit = (c) => {
     setEditId(c.id);
     setFormEdit({
       nombre: c.nombre,
       descripcion: c.descripcion,
+      nombreDirectorio: c.nombreDirectorio
     });
   };
 
   const handleEditChange = (e) => {
-    setFormEdit({
-      ...formEdit,
-      [e.target.name]: e.target.value,
-    });
+    setFormEdit({ ...formEdit, [e.target.name]: e.target.value });
   };
 
-  const saveEdit = () => {
-    setCategorias((prev) =>
-      prev.map((cat) =>
-        cat.id === editId
-          ? { ...cat, nombre: formEdit.nombre, descripcion: formEdit.descripcion }
-          : cat
-      )
-    );
-    setEditId(null);
+  const saveEdit = async () => {
+    try {
+      const body = {
+        nombre: formEdit.nombre,
+        descripcion: formEdit.descripcion,
+        nombreDirectorio: formEdit.nombreDirectorio
+      };
+
+      await updateCategoria(editId, body);
+
+      setCategorias((prev) =>
+        prev.map((c) => (c.id === editId ? { ...c, ...body } : c))
+      );
+
+      setEditId(null);
+    } catch (err) {
+      alert("Error al actualizar categoría");
+    }
   };
 
   const cancelEdit = () => setEditId(null);
 
-  // -------------------------------
-  // CREAR CATEGORÍA
-  // -------------------------------
   const handleCreateChange = (e) => {
-    setCreateForm({
-      ...createForm,
-      [e.target.name]: e.target.value,
-    });
+    setCreateForm({ ...createForm, [e.target.name]: e.target.value });
   };
 
-  const createCategoria = (e) => {
+  const submitCreate = async (e) => {
     e.preventDefault();
 
-    const nuevoId =
-      categorias.length > 0
-        ? Math.max(...categorias.map((c) => c.id)) + 1
-        : 1;
+    try {
+      const body = {
+        nombre: createForm.nombre,
+        descripcion: createForm.descripcion,
+        nombreDirectorio: createForm.nombreDirectorio
+      };
 
-    const nuevaCategoria = {
-      id: nuevoId,
-      nombre: createForm.nombre,
-      descripcion: createForm.descripcion,
-    };
+      const nueva = await createCategoria(body);
 
-    setCategorias((prev) => [...prev, nuevaCategoria]);
+      setCategorias((prev) => [
+        ...prev,
+        {
+          id: nueva.id,
+          nombre: nueva.nombre,
+          descripcion: nueva.descripcion,
+          nombreDirectorio: nueva.nombreDirectorio
+        },
+      ]);
 
-    setCreateForm({
-      nombre: "",
-      descripcion: "",
-    });
-    setCreateOpen(false);
+      setCreateForm({ nombre: "", descripcion: "", nombreDirectorio: "" });
+      setCreateOpen(false);
+    } catch (error) {
+      alert("Error al crear categoría");
+    }
   };
 
-  // -------------------------------
-  // ELIMINAR CATEGORÍA
-  // -------------------------------
-  const deleteCategoria = (id) => {
-    if (!confirm("¿Eliminar categoría?")) return;
-    setCategorias((prev) => prev.filter((c) => c.id !== id));
+  const borrar = async (id) => {
+    if (!confirm("¿Eliminar esta categoría?")) return;
+
+    try {
+      await deleteCategoria(id);
+      setCategorias((prev) => prev.filter((c) => c.id !== id));
+    } catch {
+      alert("Error al eliminar categoría");
+    }
   };
 
   return (
-    <div>
+    <div className="text-black">
       {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-slate-900">Gestión de Categorías</h1>
+        <h1 className="text-3xl font-bold text-black">Gestión de Categorías</h1>
 
         <button
           onClick={() => setCreateOpen(true)}
-          className="
-            inline-flex items-center gap-2 
-            bg-orange-600 text-white px-4 py-2 rounded-xl 
-            text-sm font-semibold shadow-md 
-            hover:bg-orange-500 active:scale-95 transition
-          "
+          className="bg-orange-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-md hover:bg-orange-500"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
           Nueva categoría
         </button>
       </div>
 
-      {/* TABLA */}
-      <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-x-auto">
-        <table className="w-full text-left min-w-[800px]">
-          <thead>
-            <tr className="text-slate-800 border-b bg-slate-100/80">
-              <th className="py-3 px-3 font-semibold text-sm">ID</th>
-              <th className="py-3 px-3 font-semibold text-sm">Nombre</th>
-              <th className="py-3 px-3 font-semibold text-sm">Descripción</th>
-              <th className="py-3 px-3 font-semibold text-sm text-center">Acciones</th>
-            </tr>
-          </thead>
+      {loading && <p className="text-black">Cargando...</p>}
 
-          <tbody className="text-slate-900">
-            {categorias.map((c) => (
-              <tr key={c.id} className="border-b hover:bg-slate-50 transition">
-                <td className="py-4 px-3">{c.id}</td>
-
-                {/* Nombre */}
-                <td className="px-3">
-                  {editId === c.id ? (
-                    <input
-                      type="text"
-                      name="nombre"
-                      value={formEdit.nombre}
-                      onChange={handleEditChange}
-                      className="border px-2 py-1 rounded w-full text-sm focus:ring-2 focus:ring-orange-500"
-                    />
-                  ) : (
-                    <span className="font-semibold text-orange-700">{c.nombre}</span>
-                  )}
-                </td>
-
-                {/* Descripción */}
-                <td className="px-3">
-                  {editId === c.id ? (
-                    <input
-                      type="text"
-                      name="descripcion"
-                      value={formEdit.descripcion}
-                      onChange={handleEditChange}
-                      className="border px-2 py-1 rounded w-full text-sm focus:ring-2 focus:ring-orange-500"
-                    />
-                  ) : (
-                    c.descripcion
-                  )}
-                </td>
-
-                {/* Acciones */}
-                <td className="px-3 text-center">
-                  {editId === c.id ? (
-                    <div className="flex justify-center gap-3">
-
-                      {/* Guardar */}
-                      <button
-                        onClick={saveEdit}
-                        className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition"
-                        title="Guardar"
-                      >
-                        <CheckCircleIcon className="w-5 h-5" />
-                      </button>
-
-                      {/* Cancelar */}
-                      <button
-                        onClick={cancelEdit}
-                        className="p-2 bg-slate-600 text-white rounded-full hover:bg-slate-700 transition"
-                        title="Cancelar"
-                      >
-                        <XCircleIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex justify-center gap-3">
-
-                      {/* Editar */}
-                      <button
-                        onClick={() => startEdit(c)}
-                        className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
-                        title="Editar categoría"
-                      >
-                        <PencilSquareIcon className="w-5 h-5" />
-                      </button>
-
-                      {/* Eliminar */}
-                      <button
-                        onClick={() => deleteCategoria(c.id)}
-                        className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
-                        title="Eliminar categoría"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
-                </td>
+      {!loading && (
+        <div className="bg-white p-6 rounded-2xl shadow-xl border overflow-x-auto text-black">
+          <table className="w-full min-w-[900px] text-black">
+            <thead>
+              <tr className="bg-slate-100 border-b text-black">
+                <th className="py-3 px-3">ID</th>
+                <th className="py-3 px-3">Nombre</th>
+                <th className="py-3 px-3">Descripción</th>
+                <th className="py-3 px-3">Directorio Bucket</th>
+                <th className="py-3 px-3 text-center">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
 
-        {categorias.length === 0 && (
-          <p className="text-center py-8 text-slate-500">
-            No hay categorías registradas.
-          </p>
-        )}
-      </div>
+            <tbody>
+              {categorias.map((c) => (
+                <tr key={c.id} className="border-b hover:bg-slate-50 text-black">
+                  <td className="py-3 px-3">{c.id}</td>
 
-      {/* MODAL CREAR CATEGORÍA */}
+                  {/* Nombre */}
+                  <td className="px-3">
+                    {editId === c.id ? (
+                      <input
+                        name="nombre"
+                        value={formEdit.nombre}
+                        onChange={handleEditChange}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    ) : (
+                      <span className="font-semibold">{c.nombre}</span>
+                    )}
+                  </td>
+
+                  {/* Descripción */}
+                  <td className="px-3">
+                    {editId === c.id ? (
+                      <input
+                        name="descripcion"
+                        value={formEdit.descripcion}
+                        onChange={handleEditChange}
+                        className="border px-2 py-1 rounded w-full"
+                      />
+                    ) : (
+                      c.descripcion
+                    )}
+                  </td>
+
+                  {/* Directorio Bucket */}
+                  <td className="px-3">
+                    {editId === c.id ? (
+                      <select
+                        name="nombreDirectorio"
+                        value={formEdit.nombreDirectorio}
+                        onChange={handleEditChange}
+                        className="border px-2 py-1 rounded w-full text-black"
+                      >
+                        <option value="">Seleccione...</option>
+                        {directoriosBucket.map((d) => (
+                          <option key={d} value={d}>{d}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <span>{c.nombreDirectorio}</span>
+                    )}
+                  </td>
+
+                  {/* ACCIONES */}
+                  <td className="text-center px-3">
+                    {editId === c.id ? (
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={saveEdit}
+                          className="p-2 bg-green-600 text-white rounded-full"
+                        >
+                          <CheckCircleIcon className="w-5 h-5" />
+                        </button>
+
+                        <button
+                          onClick={cancelEdit}
+                          className="p-2 bg-slate-600 text-white rounded-full"
+                        >
+                          <XCircleIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={() => startEdit(c)}
+                          className="p-2 bg-blue-600 text-white rounded-full"
+                        >
+                          <PencilSquareIcon className="w-5 h-5" />
+                        </button>
+
+                        <button
+                          onClick={() => borrar(c.id)}
+                          className="p-2 bg-red-600 text-white rounded-full"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+
+          </table>
+        </div>
+      )}
+
+      {/* MODAL CREAR */}
       {createOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-200 p-6 relative">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white p-6 text-black rounded-2xl w-full max-w-lg shadow-xl relative">
 
             <button
               onClick={() => setCreateOpen(false)}
-              className="absolute top-3 right-3 text-slate-500 hover:text-slate-700"
+              className="absolute top-3 right-3 text-black"
             >
               ✕
             </button>
 
-            <h2 className="text-xl font-bold text-slate-900 mb-4">
-              Nueva categoría
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Nueva categoría</h2>
 
-            <form onSubmit={createCategoria} className="space-y-4">
+            <form onSubmit={submitCreate} className="space-y-4">
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 mb-1 block">
-                  Nombre
-                </label>
+                <label className="text-sm font-semibold">Nombre</label>
                 <input
                   type="text"
                   name="nombre"
                   value={createForm.nombre}
                   onChange={handleCreateChange}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                  className="w-full border rounded-lg px-3 py-2"
                   required
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 mb-1 block">
-                  Descripción
-                </label>
+                <label className="text-sm font-semibold">Descripción</label>
                 <input
                   type="text"
                   name="descripcion"
                   value={createForm.descripcion}
                   onChange={handleCreateChange}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500"
+                  className="w-full border rounded-lg px-3 py-2"
                   required
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              <div>
+                <label className="text-sm font-semibold">Directorio Bucket</label>
+                <select
+                  name="nombreDirectorio"
+                  value={createForm.nombreDirectorio}
+                  onChange={handleCreateChange}
+                  className="w-full border rounded-lg px-3 py-2 text-black"
+                  required
+                >
+                  <option value="">Seleccione...</option>
+                  {directoriosBucket.map((d) => (
+                    <option key={d} value={d}>{d}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm hover:bg-slate-50"
+                  className="px-4 py-2 border rounded"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500 active:scale-95"
+                  className="px-5 py-2 bg-orange-600 text-white rounded font-semibold"
                 >
-                  Guardar categoría
+                  Guardar
                 </button>
               </div>
 
             </form>
+
           </div>
         </div>
       )}

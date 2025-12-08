@@ -6,8 +6,18 @@ import {
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 
+import {
+  getRoles,
+  createRole,
+  updateRole,
+  deleteRole,
+} from "../../../services/RolesService";
+
 export default function AdminRoles() {
   const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
+
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({
     nombre: "",
@@ -20,19 +30,35 @@ export default function AdminRoles() {
     descripcion: "",
   });
 
-  const endpoint = import.meta.env.VITE_API_ROLES;
-
-  // Datos temporales
+  // ===============================
+  // CARGAR ROLES
+  // ===============================
   useEffect(() => {
-    setRoles([
-      { id: 1, nombre: "ADMIN", descripcion: "Control total del sistema" },
-      { id: 2, nombre: "USER", descripcion: "Acceso limitado" },
-    ]);
+    const cargar = async () => {
+      try {
+        const data = await getRoles();
+
+        // Mapear al formato interno que usamos en el front
+        const mapeados = data.map((r) => ({
+          id: r.id,
+          nombre: r.nombreTipo,
+          descripcion: r.descripcion,
+        }));
+
+        setRoles(mapeados);
+      } catch (err) {
+        setApiError("No se pudieron cargar los roles");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargar();
   }, []);
 
-  // ------------------------------
-  // Editar Rol
-  // ------------------------------
+  // ===============================
+  // EDITAR ROL
+  // ===============================
   const startEdit = (r) => {
     setEditId(r.id);
     setEditForm({
@@ -48,20 +74,34 @@ export default function AdminRoles() {
     });
   };
 
-  const guardarCambios = () => {
-    setRoles((prev) =>
-      prev.map((r) =>
-        r.id === editId ? { ...r, nombre: editForm.nombre, descripcion: editForm.descripcion } : r
-      )
-    );
-    setEditId(null);
+  const guardarCambios = async () => {
+    try {
+      const body = {
+        nombreTipo: editForm.nombre.trim().toUpperCase(),
+        descripcion: editForm.descripcion,
+      };
+
+      await updateRole(editId, body);
+
+      setRoles((prev) =>
+        prev.map((r) =>
+          r.id === editId
+            ? { ...r, nombre: body.nombreTipo, descripcion: body.descripcion }
+            : r
+        )
+      );
+
+      setEditId(null);
+    } catch (err) {
+      alert("Error al guardar cambios");
+    }
   };
 
   const cancelarEdicion = () => setEditId(null);
 
-  // ------------------------------
-  // Crear Rol
-  // ------------------------------
+  // ===============================
+  // CREAR ROL
+  // ===============================
   const handleCreateChange = (e) => {
     setCreateForm({
       ...createForm,
@@ -69,36 +109,50 @@ export default function AdminRoles() {
     });
   };
 
-  const crearRol = (e) => {
+  const crearRol = async (e) => {
     e.preventDefault();
 
-    const nuevoId =
-      roles.length > 0 ? Math.max(...roles.map((r) => r.id)) + 1 : 1;
+    try {
+      const body = {
+        nombreTipo: createForm.nombre.trim().toUpperCase(),
+        descripcion: createForm.descripcion,
+      };
 
-    const nuevoRol = {
-      id: nuevoId,
-      nombre: createForm.nombre.toUpperCase(),
-      descripcion: createForm.descripcion,
-    };
+      const nuevo = await createRole(body);
 
-    setRoles((prev) => [...prev, nuevoRol]);
+      setRoles((prev) => [
+        ...prev,
+        {
+          id: nuevo.id,
+          nombre: nuevo.nombreTipo,
+          descripcion: nuevo.descripcion,
+        },
+      ]);
 
-    setCreateForm({
-      nombre: "",
-      descripcion: "",
-    });
-    setCreateOpen(false);
+      setCreateForm({ nombre: "", descripcion: "" });
+      setCreateOpen(false);
+    } catch (err) {
+      alert("Error al crear rol");
+    }
   };
 
-  // ------------------------------
-  // Eliminar Rol
-  // ------------------------------
-  const eliminarRol = (id) => {
+  // ===============================
+  // ELIMINAR ROL
+  // ===============================
+  const eliminarRol = async (id) => {
     if (!confirm("¿Eliminar este rol?")) return;
 
-    setRoles((prev) => prev.filter((r) => r.id !== id));
+    try {
+      await deleteRole(id);
+      setRoles((prev) => prev.filter((r) => r.id !== id));
+    } catch {
+      alert("Error al eliminar rol");
+    }
   };
 
+  // ==================================================
+  // RENDER UI
+  // ==================================================
   return (
     <div>
       {/* HEADER */}
@@ -107,164 +161,136 @@ export default function AdminRoles() {
 
         <button
           onClick={() => setCreateOpen(true)}
-          className="
-            bg-orange-600 text-white 
-            px-4 py-2 rounded-xl
-            inline-flex items-center gap-2
-            shadow-md
-            text-sm font-semibold
-            hover:bg-orange-500 active:scale-95
-            transition
-          "
+          className="bg-orange-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 shadow-md text-sm font-semibold hover:bg-orange-500 active:scale-95 transition"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
           Nuevo rol
         </button>
       </div>
 
-      {/* TABLA */}
-      <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-x-auto">
-        <table className="w-full min-w-[700px] text-left">
-          <thead>
-            <tr className="text-slate-800 border-b bg-slate-100/80">
-              <th className="py-3 px-3 font-semibold text-sm">ID</th>
-              <th className="py-3 px-3 font-semibold text-sm">Rol</th>
-              <th className="py-3 px-3 font-semibold text-sm">Descripción</th>
-              <th className="py-3 px-3 font-semibold text-sm text-center">
-                Acciones
-              </th>
-            </tr>
-          </thead>
+      {loading && <p className="text-slate-500">Cargando roles...</p>}
+      {apiError && <p className="text-red-500">{apiError}</p>}
 
-          <tbody className="text-slate-900">
-            {roles.map((r) => (
-              <tr key={r.id} className="border-b hover:bg-slate-50 transition">
-                <td className="py-4 px-3">{r.id}</td>
-
-                <td className="px-3">
-                  {editId === r.id ? (
-                    <input
-                      type="text"
-                      name="nombre"
-                      value={editForm.nombre}
-                      onChange={handleEditChange}
-                      className="border px-2 py-1 rounded w-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  ) : (
-                    <span className="font-semibold text-orange-700">{r.nombre}</span>
-                  )}
-                </td>
-
-                <td className="px-3">
-                  {editId === r.id ? (
-                    <input
-                      type="text"
-                      name="descripcion"
-                      value={editForm.descripcion}
-                      onChange={handleEditChange}
-                      className="border px-2 py-1 rounded w-full text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                    />
-                  ) : (
-                    r.descripcion
-                  )}
-                </td>
-
-                {/* ACCIONES */}
-                <td className="px-3 text-center">
-                  {editId === r.id ? (
-                    <div className="flex justify-center gap-3">
-                      {/* Guardar */}
-                      <button
-                        onClick={guardarCambios}
-                        className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700 transition"
-                        title="Guardar cambios"
-                      >
-                        <CheckCircleIcon className="w-5 h-5" />
-                      </button>
-
-                      {/* Cancelar */}
-                      <button
-                        onClick={cancelarEdicion}
-                        className="p-2 bg-slate-600 text-white rounded-full hover:bg-slate-700 transition"
-                        title="Cancelar"
-                      >
-                        <XCircleIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex justify-center gap-3">
-                      {/* Editar */}
-                      <button
-                        onClick={() => startEdit(r)}
-                        className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition"
-                        title="Editar rol"
-                      >
-                        <PencilSquareIcon className="w-5 h-5" />
-                      </button>
-
-                      {/* Eliminar */}
-                      <button
-                        onClick={() => eliminarRol(r.id)}
-                        className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition"
-                        title="Eliminar rol"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  )}
-                </td>
+      {!loading && (
+        <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full min-w-[700px] text-left">
+            <thead>
+              <tr className="text-slate-800 border-b bg-slate-100/80">
+                <th className="py-3 px-3">ID</th>
+                <th className="py-3 px-3">Rol</th>
+                <th className="py-3 px-3">Descripción</th>
+                <th className="py-3 px-3 text-center">Acciones</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
 
-        {roles.length === 0 && (
-          <p className="text-center py-8 text-slate-500">No hay roles registrados.</p>
-        )}
-      </div>
+            <tbody className="text-slate-900">
+              {roles.map((r) => (
+                <tr key={r.id} className="border-b hover:bg-slate-50 transition">
+                  <td className="py-4 px-3">{r.id}</td>
 
-      {/* MODAL CREAR ROL */}
+                  <td className="px-3">
+                    {editId === r.id ? (
+                      <input
+                        name="nombre"
+                        value={editForm.nombre}
+                        onChange={handleEditChange}
+                        className="border px-2 py-1 rounded w-full text-sm focus:ring-2 focus:ring-orange-500"
+                      />
+                    ) : (
+                      <span className="font-semibold text-orange-700">
+                        {r.nombre}
+                      </span>
+                    )}
+                  </td>
+
+                  <td className="px-3">
+                    {editId === r.id ? (
+                      <input
+                        name="descripcion"
+                        value={editForm.descripcion}
+                        onChange={handleEditChange}
+                        className="border px-2 py-1 rounded w-full text-sm focus:ring-2 focus:ring-orange-500"
+                      />
+                    ) : (
+                      r.descripcion
+                    )}
+                  </td>
+
+                  <td className="px-3 text-center">
+                    {editId === r.id ? (
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={guardarCambios}
+                          className="p-2 bg-green-600 text-white rounded-full hover:bg-green-700"
+                        >
+                          <CheckCircleIcon className="w-5 h-5" />
+                        </button>
+
+                        <button
+                          onClick={cancelarEdicion}
+                          className="p-2 bg-slate-600 text-white rounded-full hover:bg-slate-700"
+                        >
+                          <XCircleIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex justify-center gap-3">
+                        <button
+                          onClick={() => startEdit(r)}
+                          className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700"
+                        >
+                          <PencilSquareIcon className="w-5 h-5" />
+                        </button>
+
+                        <button
+                          onClick={() => eliminarRol(r.id)}
+                          className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+                        >
+                          <TrashIcon className="w-5 h-5" />
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {roles.length === 0 && (
+            <p className="text-center py-8 text-slate-500">
+              No hay roles registrados.
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* MODAL CREACIÓN */}
       {createOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 p-6 relative">
-            {/* Cerrar */}
+          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border p-6 relative">
             <button
               onClick={() => setCreateOpen(false)}
-              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600"
+              className="absolute top-3 right-3 text-slate-500 hover:text-slate-700"
             >
               ✕
             </button>
 
-            <h2 className="text-xl font-bold text-slate-900 mb-4">
-              Crear nuevo rol
-            </h2>
+            <h2 className="text-xl font-bold mb-4">Crear nuevo rol</h2>
 
-            <form className="space-y-4" onSubmit={crearRol}>
+            <form onSubmit={crearRol} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Nombre del rol
-                </label>
+                <label className="block text-sm font-semibold">Nombre</label>
                 <input
                   type="text"
                   name="nombre"
                   value={createForm.nombre}
                   onChange={handleCreateChange}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                <label className="block text-sm font-semibold">
                   Descripción
                 </label>
                 <input
@@ -272,22 +298,22 @@ export default function AdminRoles() {
                   name="descripcion"
                   value={createForm.descripcion}
                   onChange={handleCreateChange}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
                 />
               </div>
 
-              <div className="mt-4 flex justify-end gap-3">
+              <div className="flex justify-end gap-3 mt-4">
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-300 text-slate-800 text-sm hover:bg-slate-50"
+                  className="px-4 py-2 rounded-lg border text-sm"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500 active:scale-95"
+                  className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500"
                 >
                   Guardar rol
                 </button>

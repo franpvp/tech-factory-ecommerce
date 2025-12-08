@@ -26,15 +26,34 @@ import ProtectedDashboardRoute from "./routes/ProtectedDashboardRoute";
 
 import AdminLayout from "./pages/Admin/Layout/AdminLayout.jsx";
 import AdminHome from "./pages/Admin/Home/AdminHome";
-import AdminUsers from "./pages/Admin/Usuarios/AdminUsers.jsx";
+import AdminUsuarios from "./pages/Admin/Usuarios/AdminUsers.jsx";
 import AdminRoles from "./pages/Admin/Roles/AdminRoles.jsx";
 import AdminCategorias from "./pages/Admin/Categorias/AdminCategorias.jsx";
 
 import WhatsappButton from "./components/Buttons/WhatsappButton";
 import { CartProvider } from "./context/CartContext";
-import AdminProducts from "./pages/Admin/Productos/AdminProducts.jsx";
+import AdminProductos from "./pages/Admin/Productos/AdminProductos.jsx";
+import AdminInventarios from "./pages/Admin/Inventario/AdminInventarios.jsx";
+
+import { useEffect } from "react";
+import { useMsal } from "@azure/msal-react";
+import { RegistrarClienteService } from "./services/RegistrarClienteService";
 
 function App() {
+  const { accounts } = useMsal();
+
+  useEffect(() => {
+    if (accounts.length > 0) {
+      RegistrarClienteService()
+        .then((data) => {
+          console.log("✔ Cliente sincronizado:", data);
+        })
+        .catch((err) => {
+          console.error("Error al sincronizar cliente:", err);
+        });
+    }
+  }, [accounts]);
+
   return (
     <>
       <WhatsappButton />
@@ -93,10 +112,11 @@ function App() {
             }
           >
             <Route index element={<AdminHome />} />
-            <Route path="productos" element={<AdminProducts />} />
-            <Route path="usuarios" element={<AdminUsers />} />
+            <Route path="productos" element={<AdminProductos />} />
+            <Route path="usuarios" element={<AdminUsuarios />} />
             <Route path="roles" element={<AdminRoles />} />
             <Route path="categorias" element={<AdminCategorias />} />
+            <Route path="inventario" element={<AdminInventarios />} />
           </Route>
 
           <Route path="*" element={<Home />} />

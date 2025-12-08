@@ -26,17 +26,11 @@ export default function Pagos() {
     cvc: "",
   });
 
-  // ------------------------------
-  // FORMATEAR NÚMERO DE TARJETA
-  // ------------------------------
   const formatCardNumber = (value) => {
     const digits = value.replace(/\D/g, "").slice(0, 16);
     return digits.replace(/(.{4})/g, "$1 ").trim();
   };
 
-  // ------------------------------
-  // FORMATEAR FECHA MM/AAAA
-  // ------------------------------
   const formatExpiry = (value) => {
     const digits = value.replace(/\D/g, "").slice(0, 6);
     if (digits.length <= 2) return digits;
@@ -74,9 +68,6 @@ export default function Pagos() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  // ------------------------------
-  // VALIDACIONES
-  // ------------------------------
   const validate = () => {
     const newErrors = {};
     const rawCardNumber = form.cardNumber.replace(/\s/g, "");
@@ -126,9 +117,6 @@ export default function Pagos() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ------------------------------
-  // SUBMIT PAGO
-  // ------------------------------
   const submitPayment = async () => {
     setApiError(null);
 

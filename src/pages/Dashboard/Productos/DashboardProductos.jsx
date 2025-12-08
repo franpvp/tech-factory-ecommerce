@@ -8,10 +8,10 @@ export default function DashboardProductos() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editProducto, setEditProducto] = useState(null);
 
-  const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
+  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
 
   const fetchProductos = async () => {
-    const res = await fetch(endpoint);
+    const res = await fetch(endpointProductos);
     const data = await res.json();
     setProductos(data);
     setLoading(false);
@@ -23,7 +23,7 @@ export default function DashboardProductos() {
 
   const eliminarProducto = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar este producto?")) return;
-    await fetch(`${endpoint}/${id}`, { method: "DELETE" });
+    await fetch(`${endpointProductos}/${id}`, { method: "DELETE" });
     fetchProductos();
   };
 

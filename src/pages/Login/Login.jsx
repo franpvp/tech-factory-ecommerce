@@ -9,23 +9,21 @@ export default function Login() {
 
   // --- LOGIN NORMAL → HOME ---
   const handleMicrosoftLogin = () => {
-    sessionStorage.setItem("postLoginRedirect", "/"); // <-- intención
+    sessionStorage.setItem("postLoginRedirect", "/");
 
     instance.loginRedirect({
-      redirectUri: "/", // <-- SIEMPRE LA RAÍZ
+      redirectUri: "/",
     });
   };
 
-  // --- LOGIN ADMIN → /admin ---
   const handleMicrosoftAdminLogin = () => {
-    sessionStorage.setItem("postLoginRedirect", "/admin"); // <-- intención
+    sessionStorage.setItem("postLoginRedirect", "/admin");
 
     instance.loginRedirect({
-      redirectUri: "/", // <-- SIEMPRE LA RAÍZ
+      redirectUri: "/",
     });
   };
 
-  // --- REDIRECCIÓN DESPUÉS DEL LOGIN ---
   useEffect(() => {
     if (isAuthenticated) {
       const target = sessionStorage.getItem("postLoginRedirect") || "/";

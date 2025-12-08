@@ -25,6 +25,8 @@ const slides = [
 ];
 
 const Home = () => {
+  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
+
   const [current, setCurrent] = useState(0);
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +37,10 @@ const Home = () => {
   useEffect(() => {
     const fetchProductos = async () => {
       try {
-        const response = await fetch("http://localhost:8080/productos");
+        const response = await fetch(endpointProductos, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+        });
         if (!response.ok) throw new Error("Error al obtener productos");
 
         const data = await response.json();
@@ -54,10 +59,10 @@ const Home = () => {
   const handlePrev = () => setCurrent((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="flex flex-col min-h-screen bg-slate-100 text-slate-900">
       <Navbar />
 
-      <main className="pb-16">
+      <main className="flex-1">
         {/* SLIDER */}
         <section className="w-full mt-[64px]">
           <div className="relative w-full h-[300px] md:h-[450px] lg:h-[550px] overflow-hidden">
@@ -79,10 +84,16 @@ const Home = () => {
               </h2>
             </div>
 
-            <button onClick={handlePrev} className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 rounded-full shadow-lg">
+            <button
+              onClick={handlePrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 rounded-full shadow-lg"
+            >
               {"<"}
             </button>
-            <button onClick={handleNext} className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 rounded-full shadow-lg">
+            <button
+              onClick={handleNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 rounded-full shadow-lg"
+            >
               {">"}
             </button>
           </div>
@@ -91,16 +102,12 @@ const Home = () => {
         {/* PRODUCTOS */}
         <section className="mt-10">
           <div className="max-w-6xl mx-auto px-4 md:px-6">
-            <h3 className="text-xl md:text-2xl font-semibold mb-4">
-              Productos destacados
-            </h3>
+            <h3 className="text-xl md:text-2xl font-semibold mb-4">Productos destacados</h3>
 
-            {/* Loading */}
             {loading && (
               <p className="text-center text-slate-600">Cargando productos...</p>
             )}
 
-            {/* Lista */}
             {!loading && productos.length > 0 && (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {productos.map((producto) => (
@@ -158,6 +165,42 @@ const Home = () => {
           </div>
         </section>
       </main>
+
+      {/* FOOTER */}
+      <footer className="bg-slate-900 text-slate-300 mt-16 py-10 border-t border-slate-700">
+        <div className="max-w-6xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <h3 className="text-orange-400 text-lg font-bold">Tech Factory</h3>
+            <p className="text-sm mt-2 text-slate-400">
+              Hardware de alto rendimiento al mejor precio.
+              Armamos tu setup gamer o profesional.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-3">Navegación</h4>
+            <ul className="space-y-2 text-sm">
+              <li className="hover:text-orange-400 transition cursor-pointer">Inicio</li>
+              <li className="hover:text-orange-400 transition cursor-pointer">Productos</li>
+              <li className="hover:text-orange-400 transition cursor-pointer">Carrito</li>
+              <li className="hover:text-orange-400 transition cursor-pointer">Contacto</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-semibold mb-3">Contacto</h4>
+            <ul className="space-y-2 text-sm text-slate-400">
+              <li>Email: soporte@techfactory.cl</li>
+              <li>Teléfono: +56 9 1234 5678</li>
+              <li>Horario: Lunes a Sábado 10:00 - 20:00</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="text-center text-xs text-slate-500 mt-10">
+          © {new Date().getFullYear()} Tech Factory — Todos los derechos reservados.
+        </div>
+      </footer>
     </div>
   );
 };

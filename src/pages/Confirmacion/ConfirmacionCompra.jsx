@@ -15,13 +15,11 @@ export default function ConfirmacionCompra() {
     return { total: totalCalc, cantidad: cant };
   }, [cart]);
 
-  // ID de orden "simulado"
   const fakeOrderId = useMemo(() => {
     const rand = Math.floor(Math.random() * 900000) + 100000;
-    return `ORD-${rand}`;
+    return `${rand}`;
   }, []);
 
-  // Si quieres limpiar el carrito al entrar a esta vista:
   // useEffect(() => {
   //   clearCart();
   // }, [clearCart]);

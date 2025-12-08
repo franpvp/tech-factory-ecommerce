@@ -25,7 +25,10 @@ export default function CategoriaDetalle() {
 
   const fetchProductos = async () => {
     try {
-      const res = await fetch(endpointProductos);
+      const res = await fetch(endpointProductos, {
+        method: 'GET',
+        headers: {'Content-Type': 'application/json'}
+      });
       const data = await res.json();
 
       const categoriaURL = categoria.toLowerCase();
