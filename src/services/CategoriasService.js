@@ -1,8 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_CATEGORIAS;
 
-// ======================================
-// GET → listar todas las categorías
-// ======================================
 export async function getCategorias() {
   const res = await fetch(BASE_URL);
 
@@ -13,9 +10,6 @@ export async function getCategorias() {
   return res.json();
 }
 
-// ======================================
-// POST → crear categoría
-// ======================================
 export async function createCategoria(body) {
   const res = await fetch(BASE_URL, {
     method: "POST",
@@ -30,9 +24,6 @@ export async function createCategoria(body) {
   return res.json();
 }
 
-// ======================================
-// PUT → actualizar categoría
-// ======================================
 export async function updateCategoria(id, body) {
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
@@ -47,9 +38,6 @@ export async function updateCategoria(id, body) {
   return res.json();
 }
 
-// ======================================
-// DELETE → eliminar
-// ======================================
 export async function deleteCategoria(id) {
   const res = await fetch(`${BASE_URL}/${id}`, { method: "DELETE" });
 

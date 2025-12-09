@@ -11,7 +11,6 @@ const ObtenerClientesService = async () => {
     });
 
     if (!res.ok) {
-      // Puedes loguear más info aquí si quieres
       const errorText = await res.text().catch(() => "");
       throw new Error(
         `Error al obtener clientes. Status: ${res.status} - ${errorText}`
@@ -19,10 +18,10 @@ const ObtenerClientesService = async () => {
     }
 
     const data = await res.json();
-    return data; // será la lista de clientes
+    return data;
   } catch (error) {
     console.error("Error en ObtenerClientesService:", error);
-    throw error; // lo relanzas para manejarlo en el componente
+    throw error;
   }
 };
 

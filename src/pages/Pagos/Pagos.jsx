@@ -1,18 +1,74 @@
-import React, { useState, useMemo } from "react";
+
+import React, { useState, useMemo, useEffect } from "react";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import Navbar from "../../components/Navbar/Navbar";
+import { useMsal } from "@azure/msal-react";
+
+import PaymentLoading from "../../components/Loading/PaymentLoading";
+
+const COSTO_ENVIO = 4990;
 
 export default function Pagos() {
-  const navigate = useNavigate();
-  const { cart, carritoId } = useCart();
 
-  // Calculamos el total localmente
-  const total = useMemo(
+  const endpointObtenerClientes = import.meta.env.VITE_SERVICE_ENDPOINT_OBTENER_CLIENTES;
+  const navigate = useNavigate();
+  const { accounts } = useMsal();
+
+  const [waitingForPayment, setWaitingForPayment] = useState(false);
+  const [timeoutId, setTimeoutId] = useState(null);
+  const [pollInterval, setPollInterval] = useState(null);
+
+  const userEmail = accounts[0]?.username;
+
+  const despacho = JSON.parse(localStorage.getItem("despacho"));
+  const { cart, listaDetalle } = useCart();
+
+  const [idCliente, setIdCliente] = useState(null);
+
+  useEffect(() => {
+    if (!userEmail) return;
+
+    const fetchCliente = async () => {
+      try {
+        const URL = `${endpointObtenerClientes}/email/${encodeURIComponent(userEmail)}`;
+        const res = await fetch(URL);
+
+        if (!res.ok) throw new Error("No se pudo obtener el usuario");
+
+        const data = await res.json();
+        setIdCliente(data.id);
+
+      } catch (e) {
+        console.error("🔥 Error obteniendo cliente:", e);
+      }
+    };
+
+    fetchCliente();
+  }, [userEmail]);
+
+  useEffect(() => {
+    return () => {
+      console.log("🛑 Cleanup ejecutado: deteniendo polling y timeout...");
+
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        console.log("✔ Polling detenido");
+      }
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        console.log("✔ Timeout detenido");
+      }
+    };
+  }, [pollInterval, timeoutId]);
+
+  const totalProductos = useMemo(
     () => cart.reduce((acc, p) => acc + p.precio * p.cantidad, 0),
     [cart]
   );
+  const total = totalProductos + COSTO_ENVIO;
 
   const [method, setMethod] = useState("card");
   const [errors, setErrors] = useState({});
@@ -30,136 +86,152 @@ export default function Pagos() {
     const digits = value.replace(/\D/g, "").slice(0, 16);
     return digits.replace(/(.{4})/g, "$1 ").trim();
   };
-
   const formatExpiry = (value) => {
     const digits = value.replace(/\D/g, "").slice(0, 6);
     if (digits.length <= 2) return digits;
     return digits.slice(0, 2) + "/" + digits.slice(2);
   };
 
-  // ------------------------------
-  // HANDLER GENERAL
-  // ------------------------------
   const handleChange = (e) => {
     const { name, value } = e.target;
 
     if (name === "cardNumber") {
-      setForm((prev) => ({ ...prev, cardNumber: formatCardNumber(value) }));
+      setForm({ ...form, cardNumber: formatCardNumber(value) });
       return;
     }
-
     if (name === "cardName") {
       const cleaned = value.replace(/[^a-zA-ZÁÉÍÓÚáéíóúÑñ ]/g, "");
-      setForm((prev) => ({ ...prev, cardName: cleaned }));
+      setForm({ ...form, cardName: cleaned });
       return;
     }
-
     if (name === "expiry") {
-      setForm((prev) => ({ ...prev, expiry: formatExpiry(value) }));
+      setForm({ ...form, expiry: formatExpiry(value) });
       return;
     }
-
     if (name === "cvc") {
       const digits = value.replace(/\D/g, "").slice(0, 4);
-      setForm((prev) => ({ ...prev, cvc: digits }));
+      setForm({ ...form, cvc: digits });
       return;
     }
 
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm({ ...form, [name]: value });
   };
 
   const validate = () => {
     const newErrors = {};
     const rawCardNumber = form.cardNumber.replace(/\s/g, "");
 
-    if (!rawCardNumber) {
-      newErrors.cardNumber = "El número de tarjeta es obligatorio.";
-    } else if (!/^\d{16}$/.test(rawCardNumber)) {
+    if (!rawCardNumber) newErrors.cardNumber = "El número de tarjeta es obligatorio.";
+    else if (!/^\d{16}$/.test(rawCardNumber))
       newErrors.cardNumber = "La tarjeta debe tener 16 dígitos.";
-    }
 
-    if (!form.cardName.trim()) {
+    if (!form.cardName.trim())
       newErrors.cardName = "El nombre del titular es obligatorio.";
-    } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ ]+$/.test(form.cardName)) {
-      newErrors.cardName = "Solo se permiten letras.";
-    } else if (form.cardName.trim().length < 3) {
-      newErrors.cardName = "Debe tener mínimo 3 letras.";
-    }
 
-    if (!form.expiry.trim()) {
+    if (!form.expiry.trim())
       newErrors.expiry = "La expiración es obligatoria.";
-    } else {
-      const match = /^(\d{2})\/(\d{4})$/.exec(form.expiry);
-      if (!match) {
-        newErrors.expiry = "Formato inválido. Usa MM/AAAA.";
-      } else {
-        const month = parseInt(match[1], 10);
-        const year = parseInt(match[2], 10);
-        const now = new Date();
-        const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth() + 1;
 
-        if (month < 1 || month > 12) {
-          newErrors.expiry = "El mes debe ser entre 01 y 12.";
-        } else if (year < currentYear || (year === currentYear && month < currentMonth)) {
-          newErrors.expiry = "La tarjeta está vencida.";
-        }
-      }
-    }
-
-    if (!form.cvc) {
+    if (!form.cvc)
       newErrors.cvc = "El CVC es obligatorio.";
-    } else if (!/^\d{3,4}$/.test(form.cvc)) {
+    else if (!/^\d{3,4}$/.test(form.cvc))
       newErrors.cvc = "Debe tener entre 3 y 4 dígitos.";
-    }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
+  };
+  const pollEstadoOrden = (idOrdenLocal) => {
+    const url = `http://localhost:8081/ordenes/cliente/${idCliente}/ultima`;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) return;
+
+        const data = await res.json();
+        console.log("📡 Estado orden:", data);
+
+        if (data.estadoOrden !== "PAGO_PENDIENTE") {
+
+          clearInterval(interval);
+          clearTimeout(timeoutId);
+
+          setWaitingForPayment(false);
+
+          if (data.estadoOrden === "PAGO_OK") {
+            navigate("/confirmacion-compra", { state: { orden: data } });
+          } else {
+            navigate("/pago-fallido", { state: { reason: "El pago fue rechazado." }});
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error en polling:", error);
+      }
+    }, 2000);
+
+    setPollInterval(interval);
   };
 
   const submitPayment = async () => {
     setApiError(null);
 
     if (!validate()) return;
+    if (!idCliente) return setApiError("No fue posible obtener el cliente.");
+    if (!despacho) return setApiError("No se encontró la información de despacho.");
+    if (cart.length === 0) return setApiError("Tu carrito está vacío.");
 
-    if (!carritoId) {
-      setApiError(
-        "No se encontró el carrito. Intenta actualizar la página o volver al carrito."
-      );
-      return;
-    }
-
-    if (cart.length === 0) {
-      setApiError("Tu carrito está vacío.");
-      return;
-    }
+    const payload = {
+      idCliente,
+      despachoDto: despacho,
+      pagoDto: { idMetodoPago: 1, monto: total },
+      listaDetalle,
+    };
 
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:8081/ordenes", {
+      const url = "http://localhost:8081/ordenes";
+
+      const response = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          idCarrito: carritoId,
-          idMetodoPago: 1, // por ahora tarjeta = 1
-        }),
+        body: JSON.stringify(payload),
       });
 
-      if (!response.ok) {
-        throw new Error("Error al crear la orden");
-      }
+      if (!response.ok) throw new Error("Error al crear la orden");
 
       const data = await response.json();
 
-      navigate("/confirmacion", { state: { orden: data } });
+      localStorage.removeItem("despacho");
+      setWaitingForPayment(true);
+
+      // TIMEOUT GLOBAL
+      const timeout = setTimeout(() => {
+        console.warn("⏳ Timeout: no hubo respuesta en 10s.");
+
+        if (pollInterval) clearInterval(pollInterval);
+
+        navigate("/pago-fallido", {
+          state: { reason: "Tiempo de espera agotado. No se obtuvo respuesta del pago." }
+        });
+
+      }, 10000);
+
+      setTimeoutId(timeout);
+
+      pollEstadoOrden(data.idOrden);
+
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error:", err);
       setApiError("Ocurrió un error al procesar el pago. Intenta nuevamente.");
     } finally {
       setLoading(false);
     }
   };
+
+  if (waitingForPayment) {
+    return <PaymentLoading />;
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
@@ -167,36 +239,24 @@ export default function Pagos() {
 
       <main className="pt-[90px] pb-16 px-4 flex justify-center">
         <div className="bg-white shadow-xl border border-slate-200 p-8 rounded-2xl w-full max-w-2xl animate-fadeIn">
-          <h1 className="text-2xl font-bold text-slate-900 mb-6">
-            Métodos de Pago
-          </h1>
 
-          {/* MÉTODOS RÁPIDOS */}
+          <h1 className="text-2xl font-bold text-slate-900 mb-6">Métodos de Pago</h1>
+
+          {/* APPLE / GOOGLE PAY */}
           <div className="space-y-3 mb-6">
-            <button className="w-full bg-black text-white py-3 rounded-xl flex items-center justify-center gap-3 text-lg font-semibold active:scale-95 transition">
+            <button className="w-full bg-black text-white py-3 rounded-xl flex items-center justify-center gap-3 text-lg font-semibold">
                Pay
             </button>
 
-            <button className="w-full bg-white border border-slate-300 py-3 rounded-xl flex items-center justify-center gap-3 text-lg font-semibold hover:bg-slate-50 active:scale-95 transition">
-              <img
-                src="https://img.icons8.com/color/48/google-logo.png"
-                className="w-6"
-              />
+            <button className="w-full bg-white border border-slate-300 py-3 rounded-xl flex items-center justify-center gap-3 text-lg font-semibold">
+              <img src="https://img.icons8.com/color/48/google-logo.png" className="w-6" />
               Google Pay
             </button>
           </div>
 
-          {/* Separador */}
-          <div className="relative my-6">
-            <div className="border-t border-slate-300" />
-            <span className="absolute inset-0 flex justify-center -top-3 bg-white px-3 text-sm text-slate-500">
-              O pagar con tarjeta
-            </span>
-          </div>
-
-          {/* SELECCIÓN MÉTODO TARJETA */}
+          {/* MÉTODO TARJETA */}
           <div
-            className={`p-4 border rounded-xl cursor-pointer mb-4 transition ${
+            className={`p-4 border rounded-xl cursor-pointer mb-4 ${
               method === "card"
                 ? "border-orange-500 bg-orange-50"
                 : "border-slate-300 hover:bg-slate-50"
@@ -209,17 +269,13 @@ export default function Pagos() {
             </div>
           </div>
 
-          {/* FORMULARIO TARJETA */}
+          {/* FORM */}
           {method === "card" && (
-            <form
-              className="space-y-4 animate-fadeIn"
-              onSubmit={(e) => e.preventDefault()}
-            >
+            <form className="space-y-4 animate-fadeIn" onSubmit={(e) => e.preventDefault()}>
+              
               {/* Número */}
               <div>
-                <label className="text-sm text-slate-700 font-medium">
-                  Número de tarjeta
-                </label>
+                <label className="text-sm font-medium text-slate-700">Número de tarjeta</label>
                 <input
                   type="text"
                   name="cardNumber"
@@ -230,42 +286,29 @@ export default function Pagos() {
                     errors.cardNumber ? "border-red-500" : "border-slate-300"
                   }`}
                 />
-                {errors.cardNumber && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.cardNumber}
-                  </p>
-                )}
+                {errors.cardNumber && <p className="text-red-500 text-sm">{errors.cardNumber}</p>}
               </div>
 
               {/* Nombre */}
               <div>
-                <label className="text-sm text-slate-700 font-medium">
-                  Nombre del titular
-                </label>
+                <label className="text-sm font-medium text-slate-700">Nombre del titular</label>
                 <input
                   type="text"
                   name="cardName"
-                  placeholder="Juan Pérez"
                   value={form.cardName}
                   onChange={handleChange}
+                  placeholder="Juan Pérez"
                   className={`w-full mt-1 p-3 border rounded-xl ${
                     errors.cardName ? "border-red-500" : "border-slate-300"
                   }`}
                 />
-                {errors.cardName && (
-                  <p className="mt-1 text-sm text-red-500">
-                    {errors.cardName}
-                  </p>
-                )}
+                {errors.cardName && <p className="text-red-500 text-sm">{errors.cardName}</p>}
               </div>
 
-              {/* Exp + CVC */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Exp */}
                 <div>
-                  <label className="text-sm text-slate-700 font-medium">
-                    Expiración (MM/AAAA)
-                  </label>
+                  <label className="text-sm font-medium text-slate-700">Expiración</label>
                   <input
                     type="text"
                     name="expiry"
@@ -276,18 +319,12 @@ export default function Pagos() {
                       errors.expiry ? "border-red-500" : "border-slate-300"
                     }`}
                   />
-                  {errors.expiry && (
-                    <p className="mt-1 text-sm text-red-500">
-                      {errors.expiry}
-                    </p>
-                  )}
+                  {errors.expiry && <p className="text-red-500 text-sm">{errors.expiry}</p>}
                 </div>
 
                 {/* CVC */}
                 <div>
-                  <label className="text-sm text-slate-700 font-medium">
-                    CVC
-                  </label>
+                  <label className="text-sm font-medium text-slate-700">CVC</label>
                   <input
                     type="text"
                     name="cvc"
@@ -298,42 +335,36 @@ export default function Pagos() {
                       errors.cvc ? "border-red-500" : "border-slate-300"
                     }`}
                   />
-                  {errors.cvc && (
-                    <p className="mt-1 text-sm text-red-500">{errors.cvc}</p>
-                  )}
+                  {errors.cvc && <p className="text-red-500 text-sm">{errors.cvc}</p>}
                 </div>
               </div>
             </form>
           )}
 
           {/* TOTAL */}
-          <div className="mt-8 bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between items-center">
+          <div className="mt-8 bg-slate-50 border border-slate-200 rounded-xl p-4 flex justify-between">
             <span className="text-slate-700 font-medium">Total a pagar:</span>
-            <span className="text-xl font-bold text-orange-600">
-              ${total.toLocaleString()}
-            </span>
+            <span className="text-xl font-bold text-orange-600">${total.toLocaleString()}</span>
           </div>
 
-          {apiError && (
-            <p className="mt-3 text-sm text-red-500 text-center">{apiError}</p>
-          )}
+          {apiError && <p className="text-red-500 text-center text-sm mt-3">{apiError}</p>}
 
-          {/* BOTÓN PAGAR */}
+          {/* BOTÓN */}
           <button
             onClick={submitPayment}
             disabled={loading || cart.length === 0}
-            className="mt-6 w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold active:scale-95 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            className="mt-6 w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold disabled:opacity-60"
           >
             {loading ? "Procesando..." : "Confirmar pago"}
           </button>
 
-          {/* VOLVER */}
           <button
             onClick={() => navigate("/carrito")}
-            className="w-full text-center mt-4 text-sm text-slate-600 hover:text-orange-600 transition"
+            className="w-full text-center mt-4 text-sm text-slate-600 hover:text-orange-600"
           >
             ← Seguir comprando
           </button>
+
         </div>
       </main>
     </div>

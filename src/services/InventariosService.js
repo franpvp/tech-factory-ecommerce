@@ -1,12 +1,18 @@
-const API = "http://localhost:8083/api/v1/inventarios";
+const API = import.meta.env.VITE_API_INVENTARIOS;
 
 export async function getInventarios() {
-  const res = await fetch(API + "/");
+  const res = await fetch(API, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  });
   return res.json();
 }
 
 export async function getInventarioPorProducto(idProducto) {
-  const res = await fetch(`${API}/producto/${idProducto}`);
+  const res = await fetch(`${API}/producto/${idProducto}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" }
+  });
   return res.json();
 }
 

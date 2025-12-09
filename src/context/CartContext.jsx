@@ -1,13 +1,41 @@
-// src/context/CartContext.jsx
-import React, { createContext, useContext, useState, useMemo } from "react";
+import React, { createContext, useContext, useState, useMemo, useEffect } from "react";
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-  const [cart, setCart] = useState([]);
 
-  // 🆕 ID del carrito devuelto por ms-ordenes
-  const [carritoId, setCarritoId] = useState(null);
+  const [cart, setCart] = useState(() => {
+    try {
+      const saved = localStorage.getItem("cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const listaDetalle = useMemo(() => {
+  return cart.map((item) => ({
+    idProducto: item.idProducto,
+    cantidad: item.cantidad
+  }));
+}, [cart]);
+
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const [carritoId, setCarritoId] = useState(() => {
+    try {
+      const saved = localStorage.getItem("carritoId");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem("carritoId", JSON.stringify(carritoId));
+  }, [carritoId]);
 
   // Aumentar cantidad
   const increaseQuantity = (idProducto) => {
@@ -33,7 +61,7 @@ export function CartProvider({ children }) {
     );
   };
 
-  // Agregar producto
+  // Agregar producto al carrito
   const addToCart = (producto) => {
     setCart((prev) => {
       const existente = prev.find((p) => p.idProducto === producto.idProducto);
@@ -50,18 +78,23 @@ export function CartProvider({ children }) {
     });
   };
 
-  // Eliminar
+  // ❌ Eliminar un producto
   const deleteFromCart = (idProducto) => {
     setCart((prev) => prev.filter((p) => p.idProducto !== idProducto));
   };
 
-  // Vaciar carrito
-  const clearCart = () => setCart([]);
+  // 🧹 Vaciar carrito completo
+  const clearCart = () => {
+    setCart([]);
+    setCarritoId(null);
+    localStorage.removeItem("cart");
+    localStorage.removeItem("carritoId");
+  };
 
-  // Total unidades
+  // Total de unidades
   const cartCount = cart.reduce((acc, item) => acc + item.cantidad, 0);
 
-  // Total en $
+  // Total en dinero
   const total = useMemo(
     () => cart.reduce((acc, p) => acc + p.precio * p.cantidad, 0),
     [cart]
@@ -76,14 +109,11 @@ export function CartProvider({ children }) {
         increaseQuantity,
         decreaseQuantity,
         clearCart,
-
-        // 🆕 Totales
         cartCount,
         total,
-
-        // 🆕 Carrito en BD
         carritoId,
         setCarritoId,
+        listaDetalle
       }}
     >
       {children}

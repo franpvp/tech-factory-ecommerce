@@ -1,0 +1,57 @@
+/* CONTENEDOR PRINCIPAL */
+.payment-loading {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #0d0d0d;
+  color: #ffffff;
+  font-family: "Segoe UI", Roboto, sans-serif;
+  text-align: center;
+}
+
+/* TITULO */
+.payment-loading h2 {
+  margin-top: 20px;
+  font-weight: 600;
+  font-size: 1.6rem;
+  letter-spacing: 0.5px;
+}
+
+/* SUBTITULO */
+.payment-loading p {
+  opacity: 0.7;
+  margin-top: 8px;
+  font-size: 0.9rem;
+}
+
+/* LOADER */
+.loader {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 6px solid rgba(255, 255, 255, 0.15);
+  border-top-color: #00ffcc;
+  animation: spin 1s infinite linear, glow 2s infinite ease-in-out;
+}
+
+/* GIRO DEL CÍRCULO */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* EFECTO DE BRILLO */
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px #00ffcc;
+  }
+  50% {
+    box-shadow: 0 0 25px #00ffcc;
+  }
+  100% {
+    box-shadow: 0 0 5px #00ffcc;
+  }
+}

@@ -3,7 +3,6 @@ import Navbar from "../../components/Navbar/Navbar";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
-// 💰 Costo fijo de despacho (puedes cambiarlo cuando quieras)
 const COSTO_DESPACHO = 4990;
 
 const regiones = [
@@ -66,6 +65,20 @@ export default function Despacho() {
     return digits;
   };
 
+  const guardarDespacho = () => {
+    const despacho = {
+      nombreDestinatario: form.nombre,
+      apellidoDestinatario: form.apellido,
+      telefono: form.telefono,
+      direccion: form.direccion,
+      region: form.region,
+      ciudadComuna: form.ciudad,
+      codigoPostal: form.codigoPostal || null
+    };
+
+    localStorage.setItem("despacho", JSON.stringify(despacho));
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -109,9 +122,10 @@ export default function Despacho() {
 
   const continuar = () => {
     if (!validate()) return;
+
+    guardarDespacho();
     navigate("/pago");
   };
-
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <Navbar />

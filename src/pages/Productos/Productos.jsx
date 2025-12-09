@@ -23,7 +23,6 @@ export default function ProductoDetalle() {
       setProducto(data);
       setSelectedImg(data.imagenUrl);
 
-      // 🔥 productos relacionados (misma categoría)
       const rel = await fetch(endpointProductos);
       const all = await rel.json();
       setRelacionados(all.filter((p) => p.idProducto !== Number(id)).slice(0, 4));

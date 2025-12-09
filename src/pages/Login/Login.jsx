@@ -7,7 +7,6 @@ export default function Login() {
   const { instance } = useMsal();
   const navigate = useNavigate();
 
-  // --- LOGIN NORMAL → HOME ---
   const handleMicrosoftLogin = () => {
     sessionStorage.setItem("postLoginRedirect", "/");
 

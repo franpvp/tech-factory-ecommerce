@@ -9,7 +9,6 @@ import { useNavigate } from "react-router-dom";
 export default function Perfil() {
   const navigate = useNavigate();
 
-  // Datos simulados (reemplazables por API / auth real)
   const user = {
     nombre: "Francisca Valdivia",
     correo: "francisca.valdivia@example.com",
@@ -20,7 +19,6 @@ export default function Perfil() {
     avatar: "https://i.pravatar.cc/300?img=47",
   };
 
-  // Pedidos simulados
   const pedidos = [
     {
       id: "PED-2024011",

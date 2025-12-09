@@ -19,7 +19,6 @@ export default function AdminUsuarios() {
     ciudad: "",
   });
 
-  // MODAL CREACIÓN
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState({
     nombre: "",
@@ -33,9 +32,6 @@ export default function AdminUsuarios() {
 
   const [errors, setErrors] = useState({});
 
-  // ==============================
-  // CARGAR CLIENTES DESDE BACKEND
-  // ==============================
   useEffect(() => {
     const cargarClientes = async () => {
       try {
@@ -69,9 +65,6 @@ export default function AdminUsuarios() {
     cargarClientes();
   }, []);
 
-  // ==============================
-  // VALIDACIÓN POR CAMPO
-  // ==============================
   const validateField = (name, value) => {
     let msg = "";
 
@@ -100,7 +93,6 @@ export default function AdminUsuarios() {
     return msg;
   };
 
-  // HANDLE CHANGE — valida en tiempo real (CREACIÓN)
   const handleCreateChange = (e) => {
     const { name, value } = e.target;
 
@@ -115,8 +107,6 @@ export default function AdminUsuarios() {
     });
   };
 
-  // CREAR USUARIO (por ahora solo en memoria;
-  // luego se puede conectar con POST al backend)
   const crearUsuario = (e) => {
     e.preventDefault();
 
@@ -163,7 +153,6 @@ export default function AdminUsuarios() {
     setCreateOpen(false);
   };
 
-  // EDICIÓN EN TABLA
   const comenzarEdicion = (u) => {
     setEditUserId(u.id);
     setEditForm({
@@ -226,10 +215,6 @@ export default function AdminUsuarios() {
       {/* ESTADO CARGA / ERROR */}
       {loading && (
         <p className="mb-4 text-sm text-slate-500">Cargando usuarios...</p>
-      )}
-
-      {apiError && (
-        <p className="mb-4 text-sm text-red-500">{apiError}</p>
       )}
 
       {/* TABLA */}

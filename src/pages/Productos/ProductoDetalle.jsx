@@ -17,11 +17,6 @@ export default function ProductoDetalle() {
   const scrollRef = useRef(null);
 
   const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS; 
-  // ej: http://localhost:8084/api/v1/productos
-
-  // =======================================
-  // 1. FETCH DEL PRODUCTO POR ID
-  // =======================================
   useEffect(() => {
     async function fetchProducto() {
       try {

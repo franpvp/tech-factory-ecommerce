@@ -13,11 +13,11 @@ const mapRow = (r) => ({
 function writeXlsx(rowsMapped, sheetName = 'Trades', filename = 'trades.xlsx') {
   const ws = XLSX.utils.json_to_sheet(rowsMapped);
   ws['!cols'] = [
-    { wch: 12 }, // ID_TRADE
-    { wch: 14 }, // MONTO
-    { wch: 12 }, // CANAL
-    { wch: 18 }, // FECHA_CREACION
-    { wch: 12 }, // ID_CLIENTE
+    { wch: 12 },
+    { wch: 14 }, 
+    { wch: 12 },
+    { wch: 18 },
+    { wch: 12 },
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, sheetName);

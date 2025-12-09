@@ -1,8 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_ROLES;
 
-// ======================================
-// GET → listar todos los roles
-// ======================================
 export async function getRoles() {
   const res = await fetch(BASE_URL);
 
@@ -13,9 +10,6 @@ export async function getRoles() {
   return res.json();
 }
 
-// ======================================
-// POST → crear un rol
-// ======================================
 export async function createRole(body) {
   const res = await fetch(BASE_URL, {
     method: "POST",
@@ -30,9 +24,6 @@ export async function createRole(body) {
   return res.json();
 }
 
-// ======================================
-// PUT → actualizar rol
-// ======================================
 export async function updateRole(id, body) {
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: "PUT",
@@ -47,9 +38,6 @@ export async function updateRole(id, body) {
   return res.json();
 }
 
-// ======================================
-// DELETE → eliminar rol
-// ======================================
 export async function deleteRole(id) {
   const res = await fetch(`${BASE_URL}/${id}`, {
     method: "DELETE",

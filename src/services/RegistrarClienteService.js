@@ -10,8 +10,6 @@ export const RegistrarClienteService = async () => {
       console.warn("No hay cuentas activas en MSAL.");
       return;
     }
-
-    // 🔥 USAR EL SCOPE CORRECTO
     let response = await msalInstance.acquireTokenSilent({
       scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
       account: accounts[0],

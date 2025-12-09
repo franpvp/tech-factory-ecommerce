@@ -1,44 +1,72 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 
 export default function CategoriaDetalle() {
+
   const { categoria } = useParams();
+  const navigate = useNavigate();
+
   const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
+  const endpointCategorias = import.meta.env.VITE_API_CATEGORIAS;
 
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Normaliza (convierte "TARJETAS GRAFICAS" → "tarjetas-graficas")
   const normalizar = (valor) => {
-    if (!valor) return "";
+    return valor?.toLowerCase().replaceAll(" ", "-") ?? "";
+  };
 
-    if (typeof valor === "string") {
-      return valor.toLowerCase().replaceAll(" ", "-");
-    }
-
-    if (typeof valor === "object" && valor.nombre) {
-      return valor.nombre.toLowerCase().replaceAll(" ", "-");
-    }
-
-    return "";
+  // Alias para soportar URLs alternativas
+  const aliasCategorias = {
+    "tarjetas-video": "tarjetas-graficas",
+    "tarjetas-grafica": "tarjetas-graficas",
+    "video": "tarjetas-graficas",
   };
 
   const fetchProductos = async () => {
     try {
-      const res = await fetch(endpointProductos, {
-        method: 'GET',
-        headers: {'Content-Type': 'application/json'}
+      const [resProductos, resCategorias] = await Promise.all([
+        fetch(endpointProductos),
+        fetch(endpointCategorias)
+      ]);
+
+      const rawProductos = await resProductos.text();
+      const rawCategorias = await resCategorias.text();
+
+      const productosData = JSON.parse(rawProductos);
+      const categoriasData = JSON.parse(rawCategorias);
+
+      // Crear mapa idCategoria → nombreCategoria
+      const mapaCategorias = {};
+      categoriasData.forEach(cat => {
+        mapaCategorias[cat.id] = cat.nombre;
       });
-      const data = await res.json();
 
+      // Agregar nombre de categoría a cada producto
+      const productosConCategoria = productosData.map(p => ({
+        ...p,
+        categoriaNombre: mapaCategorias[p.idCategoria] || ""
+      }));
+
+      // Normalizar categoría de URL + aplicar alias si existe
       const categoriaURL = categoria.toLowerCase();
+      const categoriaURLFinal = aliasCategorias[categoriaURL] || categoriaURL;
 
-      const filtrado = data.filter((p) => {
-        const catNormalizada = normalizar(p.categoria);
-        return catNormalizada.includes(categoriaURL);
+      console.log("🟧 URL buscada:", categoriaURLFinal);
+
+      // Filtrar productos según categoría
+      const filtrado = productosConCategoria.filter((p) => {
+        const catP = normalizar(p.categoriaNombre);
+
+        console.log("🟦 Producto:", p.nombre, "| cat normalizada:", catP);
+
+        return catP === categoriaURLFinal;
       });
 
       setProductos(filtrado);
+
     } catch (e) {
       console.error("Error:", e);
     } finally {
@@ -50,7 +78,7 @@ export default function CategoriaDetalle() {
     fetchProductos();
   }, [categoria]);
 
-  const titulo = categoria.replace("-", " ").toUpperCase();
+  const titulo = categoria.replaceAll("-", " ").toUpperCase();
 
   return (
     <div className="min-h-screen bg-slate-100">
@@ -68,7 +96,8 @@ export default function CategoriaDetalle() {
             {productos.map((p) => (
               <article
                 key={p.id}
-                className="bg-white rounded-2xl shadow border border-slate-200 hover:-translate-y-1 transition flex flex-col"
+                className="bg-white rounded-2xl shadow border border-slate-200 hover:-translate-y-1 transition flex flex-col cursor-pointer"
+                onClick={() => navigate(`/producto/${p.id}`)}
               >
                 <div className="h-40 bg-white flex items-center justify-center">
                   <img
@@ -89,6 +118,9 @@ export default function CategoriaDetalle() {
 
                     <button
                       className="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-full hover:bg-slate-700"
+                      onClick={(e) => {
+                        e.stopPropagation();  
+                      }}
                     >
                       Agregar
                     </button>

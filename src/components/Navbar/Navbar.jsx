@@ -51,7 +51,6 @@ export default function Navbar() {
 
   const openProductosMenu = () => setProductsMenuOpen(!productsMenuOpen);
 
-  // Cerrar menú productos y menú perfil al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -270,114 +269,114 @@ export default function Navbar() {
       )}
 
       {/* OVERLAY */}
-{sidebarOpen && (
-  <div
-    onClick={() => setSidebarOpen(false)}
-    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
-  />
-)}
-
-{/* === SIDEBAR IZQUIERDO === */}
-<aside
-  className={`fixed top-0 left-0 h-full w-72 bg-white border-r border-slate-200 shadow-2xl z-50 
-  transition-transform duration-300 rounded-r-2xl 
-  flex flex-col justify-between
-  ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
->
-  {/* HEADER */}
-  <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-    <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-      <span className="text-orange-600">Tech</span> Factory
-    </h2>
-
-    <button
-      onClick={() => setSidebarOpen(false)}
-      className="p-2 rounded-lg hover:bg-slate-100 transition"
-    >
-      <XMarkIcon className="w-6 h-6 text-slate-700" />
-    </button>
-  </div>
-
-  {/* CONTENIDO CENTRADO DEL MENÚ */}
-  <nav className="p-4 flex-1">
-    <ul className="flex flex-col gap-1 text-sm font-medium text-slate-700">
-
-      {/* HOME */}
-      <li
-        onClick={goHome}
-        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
-      >
-        <HomeIcon className="w-5 h-5 text-orange-500" />
-        Inicio
-      </li>
-
-      {/* PRODUCTOS */}
-      <li
-        onClick={goProductosPage}
-        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
-      >
-        <CubeIcon className="w-5 h-5 text-orange-500" />
-        Productos
-      </li>
-
-      {/* CARRITO */}
-      <li
-        onClick={goCarrito}
-        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
-      >
-        <ShoppingCartIcon className="w-5 h-5 text-orange-500" />
-        Mi carrito
-      </li>
-
-      {/* CONTACTO */}
-      <li
-        onClick={goContacto}
-        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
-      >
-        <EnvelopeIcon className="w-5 h-5 text-orange-500" />
-        Contacto
-      </li>
-    </ul>
-  </nav>
-
-  {/* FOOTER – USUARIO Y LOGOUT */}
-  {isAuthenticated && (
-    <div className="px-4 pb-6 border-t border-slate-200 pt-4">
-
-      {/* PERFIL */}
-      <button
-        onClick={goPerfil}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 transition text-left"
-      >
+      {sidebarOpen && (
         <div
-          className="
-          w-10 h-10 
-          min-w-[2.5rem] min-h-[2.5rem] 
-          rounded-full bg-orange-600 text-white 
-          flex items-center justify-center 
-          font-bold text-lg aspect-square flex-none"
-        >
-          {profileLetter}
-        </div>
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
+        />
+      )}
 
-        <div>
-          <p className="text-sm font-semibold text-slate-800">{profileName}</p>
-          <p className="text-xs text-slate-500">Mi cuenta</p>
-        </div>
-      </button>
-
-      {/* LOGOUT */}
-      <button
-        onClick={handleLogout}
-        className="mt-3 w-full flex items-center gap-3 px-4 py-3 
-        rounded-xl hover:bg-red-50 transition text-left text-red-600"
+      {/* === SIDEBAR IZQUIERDO === */}
+      <aside
+        className={`fixed top-0 left-0 h-full w-72 bg-white border-r border-slate-200 shadow-2xl z-50 
+        transition-transform duration-300 rounded-r-2xl 
+        flex flex-col justify-between
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <ArrowRightStartOnRectangleIcon className="w-5 h-5" />
-        <span className="text-sm font-semibold">Cerrar sesión</span>
-      </button>
-    </div>
-  )}
-</aside>
+        {/* HEADER */}
+        <div className="p-5 border-b border-slate-200 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+            <span className="text-orange-600">Tech</span> Factory
+          </h2>
+
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="p-2 rounded-lg hover:bg-slate-100 transition"
+          >
+            <XMarkIcon className="w-6 h-6 text-slate-700" />
+          </button>
+        </div>
+
+        {/* CONTENIDO CENTRADO DEL MENÚ */}
+        <nav className="p-4 flex-1">
+          <ul className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+
+            {/* HOME */}
+            <li
+              onClick={goHome}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
+            >
+              <HomeIcon className="w-5 h-5 text-orange-500" />
+              Inicio
+            </li>
+
+            {/* PRODUCTOS */}
+            <li
+              onClick={goProductosPage}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
+            >
+              <CubeIcon className="w-5 h-5 text-orange-500" />
+              Productos
+            </li>
+
+            {/* CARRITO */}
+            <li
+              onClick={goCarrito}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
+            >
+              <ShoppingCartIcon className="w-5 h-5 text-orange-500" />
+              Mi carrito
+            </li>
+
+            {/* CONTACTO */}
+            <li
+              onClick={goContacto}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
+            >
+              <EnvelopeIcon className="w-5 h-5 text-orange-500" />
+              Contacto
+            </li>
+          </ul>
+        </nav>
+
+        {/* FOOTER – USUARIO Y LOGOUT */}
+        {isAuthenticated && (
+          <div className="px-4 pb-6 border-t border-slate-200 pt-4">
+
+            {/* PERFIL */}
+            <button
+              onClick={goPerfil}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 transition text-left"
+            >
+              <div
+                className="
+                w-10 h-10 
+                min-w-[2.5rem] min-h-[2.5rem] 
+                rounded-full bg-orange-600 text-white 
+                flex items-center justify-center 
+                font-bold text-lg aspect-square flex-none"
+              >
+                {profileLetter}
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-slate-800">{profileName}</p>
+                <p className="text-xs text-slate-500">Mi cuenta</p>
+              </div>
+            </button>
+
+            {/* LOGOUT */}
+            <button
+              onClick={handleLogout}
+              className="mt-3 w-full flex items-center gap-3 px-4 py-3 
+              rounded-xl hover:bg-red-50 transition text-left text-red-600"
+            >
+              <ArrowRightStartOnRectangleIcon className="w-5 h-5" />
+              <span className="text-sm font-semibold">Cerrar sesión</span>
+            </button>
+          </div>
+        )}
+      </aside>
 
       {/* OVERLAY CARRITO */}
       {cartOpen && (

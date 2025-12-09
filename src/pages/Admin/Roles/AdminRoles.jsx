@@ -56,9 +56,6 @@ export default function AdminRoles() {
     cargar();
   }, []);
 
-  // ===============================
-  // EDITAR ROL
-  // ===============================
   const startEdit = (r) => {
     setEditId(r.id);
     setEditForm({
@@ -99,9 +96,6 @@ export default function AdminRoles() {
 
   const cancelarEdicion = () => setEditId(null);
 
-  // ===============================
-  // CREAR ROL
-  // ===============================
   const handleCreateChange = (e) => {
     setCreateForm({
       ...createForm,
@@ -136,9 +130,6 @@ export default function AdminRoles() {
     }
   };
 
-  // ===============================
-  // ELIMINAR ROL
-  // ===============================
   const eliminarRol = async (id) => {
     if (!confirm("¿Eliminar este rol?")) return;
 
@@ -150,9 +141,6 @@ export default function AdminRoles() {
     }
   };
 
-  // ==================================================
-  // RENDER UI
-  // ==================================================
   return (
     <div>
       {/* HEADER */}
