@@ -1,4 +1,4 @@
-const API = import.meta.env.VITE_API_INVENTARIOS;
+const API = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_INVENTARIOS;
 
 export async function getInventarios() {
   const res = await fetch(API, {

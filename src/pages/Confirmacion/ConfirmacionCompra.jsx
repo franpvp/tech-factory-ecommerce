@@ -1,28 +1,38 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 import { useCart } from "../../context/CartContext";
 
 export default function ConfirmacionCompra() {
   const navigate = useNavigate();
-  const { cart, clearCart } = useCart?.() || { cart: [], clearCart: () => {} };
+  const { clearCart } = useCart?.() || { clearCart: () => {} };
 
-  // Total y cantidad
+  // Recibir orden desde navigate(... { state: { orden } })
+  const { state } = useLocation();
+  const orden = state?.orden;
+
+  // Si alguien entra directo sin datos → volver al home
+  useEffect(() => {
+    if (!orden) {
+      navigate("/");
+    }
+  }, [orden, navigate]);
+
+  // Extraer detalles reales desde el backend
+  const listaDetalle = orden?.listaDetalle || [];
+
+  // Calcular totales reales
   const { total, cantidad } = useMemo(() => {
-    const totalCalc = cart.reduce((acc, p) => acc + p.precio * p.cantidad, 0);
-    const cant = cart.reduce((acc, p) => acc + p.cantidad, 0);
+    const totalCalc = listaDetalle.reduce((acc, d) => acc + d.subtotal, 0);
+    const cant = listaDetalle.reduce((acc, d) => acc + d.cantidad, 0);
     return { total: totalCalc, cantidad: cant };
-  }, [cart]);
+  }, [listaDetalle]);
 
-  const fakeOrderId = useMemo(() => {
-    const rand = Math.floor(Math.random() * 900000) + 100000;
-    return `${rand}`;
-  }, []);
-
-  // useEffect(() => {
-  //   clearCart();
-  // }, [clearCart]);
+  // Limpiar carrito cuando se carga
+  useEffect(() => {
+    clearCart?.();
+  }, [clearCart]);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
@@ -30,6 +40,7 @@ export default function ConfirmacionCompra() {
 
       <main className="pt-[90px] pb-16 px-4 flex justify-center">
         <div className="bg-white shadow-xl border border-slate-200 p-8 rounded-2xl w-full max-w-3xl animate-fadeIn">
+
           {/* HEADER */}
           <div className="flex flex-col items-center text-center mb-8">
             <CheckCircleIcon className="w-20 h-20 text-green-500 mb-4" />
@@ -42,7 +53,7 @@ export default function ConfirmacionCompra() {
 
             <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 text-sm text-slate-700 border border-slate-200">
               <span className="font-semibold">N° de orden:</span>
-              <span className="font-mono text-orange-600">{fakeOrderId}</span>
+              <span className="font-mono text-orange-600">{orden?.idOrden}</span>
             </div>
           </div>
 
@@ -52,14 +63,17 @@ export default function ConfirmacionCompra() {
               <h2 className="text-sm font-semibold text-slate-700 mb-2">
                 Resumen de la compra
               </h2>
+
               <div className="flex justify-between text-sm mb-1">
                 <span>Productos</span>
                 <span>{cantidad}</span>
               </div>
+
               <div className="flex justify-between text-sm mb-1">
                 <span>Envío</span>
                 <span className="text-green-600 font-semibold">Gratis</span>
               </div>
+
               <div className="flex justify-between font-bold text-lg border-t pt-3 mt-3">
                 <span>Total pagado</span>
                 <span className="text-orange-600">${total.toLocaleString()}</span>
@@ -73,43 +87,49 @@ export default function ConfirmacionCompra() {
               <p className="text-sm text-slate-600 mb-2">
                 Tu pedido está actualmente:
               </p>
+
               <p className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700 bg-sky-50 border border-sky-200 px-3 py-1 rounded-full">
                 <span className="w-2 h-2 rounded-full bg-sky-500"></span>
                 En preparación
               </p>
+
               <p className="mt-3 text-xs text-slate-500">
                 Recibirás un correo con la confirmación y detalles del despacho.
               </p>
             </div>
           </div>
 
-          {/* LISTA RESUMEN DE PRODUCTOS */}
-          {cart.length > 0 && (
+          {/* LISTA DE PRODUCTOS */}
+          {listaDetalle.length > 0 && (
             <div className="mb-8">
               <h2 className="text-sm font-semibold text-slate-700 mb-3">
                 Productos de tu pedido
               </h2>
+
               <div className="space-y-3">
-                {cart.map((item) => (
+                {listaDetalle.map((item) => (
                   <div
-                    key={item.idProducto}
+                    key={item.idDetalleOrden}
                     className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl p-3"
                   >
                     <img
-                      src={item.imagenUrl}
-                      alt={item.nombre}
+                      src={item.producto.imagenUrl}
+                      alt={item.producto.nombre}
                       className="w-14 h-14 rounded-lg object-cover border border-slate-200"
                     />
+
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-slate-800">
-                        {item.nombre}
+                        {item.producto.nombre}
                       </p>
+
                       <p className="text-xs text-slate-500">
                         Cantidad: {item.cantidad}
                       </p>
                     </div>
+
                     <p className="text-sm font-semibold text-slate-800">
-                      ${(item.precio * item.cantidad).toLocaleString()}
+                      ${item.subtotal.toLocaleString()}
                     </p>
                   </div>
                 ))}
@@ -117,13 +137,10 @@ export default function ConfirmacionCompra() {
             </div>
           )}
 
-          {/* BOTONES DE ACCIÓN */}
+          {/* BOTONES */}
           <div className="flex flex-col md:flex-row gap-3 md:justify-between mt-4">
             <button
-              onClick={() => {
-                clearCart?.();
-                navigate("/");
-              }}
+              onClick={() => navigate("/")}
               className="w-full md:w-auto bg-orange-600 hover:bg-orange-500 text-white py-3 px-6 rounded-xl font-semibold active:scale-95 transition text-center"
             >
               Seguir comprando
@@ -136,6 +153,7 @@ export default function ConfirmacionCompra() {
               Ver mis pedidos
             </button>
           </div>
+
         </div>
       </main>
     </div>

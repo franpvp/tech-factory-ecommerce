@@ -1,6 +1,6 @@
 
 const ObtenerClientesService = async () => {
-  const endpointClientes = import.meta.env.VITE_SERVICE_ENDPOINT_OBTENER_CLIENTES;
+  const endpointClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
 
   try {
     const res = await fetch(endpointClientes, {

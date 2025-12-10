@@ -7,8 +7,8 @@ export default function CategoriaDetalle() {
   const { categoria } = useParams();
   const navigate = useNavigate();
 
-  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
-  const endpointCategorias = import.meta.env.VITE_API_CATEGORIAS;
+  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
+  const endpointCategorias = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_CATEGORIAS;
 
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -11,7 +11,7 @@ export default function ProductoModal({ onClose, producto, refresh }) {
     descripcion: "",
   });
 
-  const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
+  const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
 
   useEffect(() => {
     if (producto) setForm(producto);

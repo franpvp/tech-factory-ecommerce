@@ -25,7 +25,7 @@ const slides = [
 ];
 
 const Home = () => {
-  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
+  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
 
   const [current, setCurrent] = useState(0);
   const [productos, setProductos] = useState([]);

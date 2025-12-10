@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from "react";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +11,7 @@ const COSTO_ENVIO = 4990;
 
 export default function Pagos() {
 
-  const endpointObtenerClientes = import.meta.env.VITE_SERVICE_ENDPOINT_OBTENER_CLIENTES;
+  const endpointObtenerClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
   const navigate = useNavigate();
   const { accounts } = useMsal();
 
@@ -27,6 +26,7 @@ export default function Pagos() {
 
   const [idCliente, setIdCliente] = useState(null);
 
+  // === Obtener cliente por email ===
   useEffect(() => {
     if (!userEmail) return;
 
@@ -48,6 +48,7 @@ export default function Pagos() {
     fetchCliente();
   }, [userEmail]);
 
+  // === Cleanup de polling & timeout al desmontar ===
   useEffect(() => {
     return () => {
       console.log("🛑 Cleanup ejecutado: deteniendo polling y timeout...");
@@ -140,6 +141,10 @@ export default function Pagos() {
 
     return Object.keys(newErrors).length === 0;
   };
+
+  // ===============================================
+  // 🔥 POLLING DE ESTADO DE LA ORDEN
+  // ===============================================
   const pollEstadoOrden = (idOrdenLocal) => {
     const url = `http://localhost:8081/ordenes/cliente/${idCliente}/ultima`;
 
@@ -151,19 +156,24 @@ export default function Pagos() {
         const data = await res.json();
         console.log("📡 Estado orden:", data);
 
-        if (data.estadoOrden !== "PAGO_PENDIENTE") {
+        const estado = data.estadoOrden?.toUpperCase().replace(/[\s_-]+/g, "_").trim();
+
+        // 🔥 Si el estado CAMBIÓ y ya no es PENDIENTE:
+        if (estado !== "PAGO_PENDIENTE") {
 
           clearInterval(interval);
           clearTimeout(timeoutId);
-
           setWaitingForPayment(false);
 
-          if (data.estadoOrden === "PAGO_OK") {
+          if (estado === "PAGO_CORRECTO") {
             navigate("/confirmacion-compra", { state: { orden: data } });
           } else {
-            navigate("/pago-fallido", { state: { reason: "El pago fue rechazado." }});
+            navigate("/pago-fallido", { 
+              state: { reason: "El pago fue rechazado." } 
+            });
           }
         }
+
       } catch (error) {
         console.error("❌ Error en polling:", error);
       }
@@ -172,6 +182,9 @@ export default function Pagos() {
     setPollInterval(interval);
   };
 
+  // ===============================================
+  // 🔥 SUBMIT DEL PAGO
+  // ===============================================
   const submitPayment = async () => {
     setApiError(null);
 
@@ -205,7 +218,7 @@ export default function Pagos() {
       localStorage.removeItem("despacho");
       setWaitingForPayment(true);
 
-      // TIMEOUT GLOBAL
+      // TIMEOUT GLOBAL - 10 segundos
       const timeout = setTimeout(() => {
         console.warn("⏳ Timeout: no hubo respuesta en 10s.");
 

@@ -7,7 +7,7 @@ import {
 import { getCategorias } from "../../../services/CategoriasService";
 
 export default function AdminProductos() {
-  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
+  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
   const endpointBucket = import.meta.env.VITE_BUCKET;
 
   const [productos, setProductos] = useState([]);

@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_ROLES;
+const BASE_URL = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ROLES;
 
 export async function getRoles() {
   const res = await fetch(BASE_URL);

@@ -8,7 +8,7 @@ export default function DashboardProductos() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editProducto, setEditProducto] = useState(null);
 
-  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_PRODUCTOS;
+  const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
 
   const fetchProductos = async () => {
     const res = await fetch(endpointProductos);

@@ -2,7 +2,7 @@ import { msalInstance } from "../auth/authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 
 export const RegistrarClienteService = async () => {
-  const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_REGISTRO_CLIENTES;
+  const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_REGISTRO_CLIENTES;
 
   try {
     const accounts = msalInstance.getAllAccounts();
