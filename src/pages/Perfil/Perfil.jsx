@@ -1,180 +1,209 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar/Navbar";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
 } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { useMsal } from "@azure/msal-react";
+import { msalInstance } from "../../auth/authConfig";
 
 export default function Perfil() {
   const navigate = useNavigate();
+  const { accounts } = useMsal();
 
-  const user = {
-    nombre: "Francisca Valdivia",
-    correo: "francisca.valdivia@example.com",
-    telefono: "+56 9 5612 4567",
-    direccion: "Av. Siempre Viva 742, Santiago",
-    rol: "Cliente Premium",
-    fechaRegistro: "15 Marzo 2024",
-    avatar: "https://i.pravatar.cc/300?img=47",
+  const userEmail = accounts[0]?.username;
+  
+  const endpointClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
+  const endpointOrdenes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
+
+  const [cliente, setCliente] = useState(null);
+  const [pedidos, setPedidos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openPedido, setOpenPedido] = useState(null);
+
+  const obtenerToken = async () => {
+    try {
+      const accounts = msalInstance.getAllAccounts();
+      if (accounts.length === 0) return null;
+
+      const response = await msalInstance.acquireTokenSilent({
+        scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
+        account: accounts[0],
+      });
+      return response.accessToken;
+    } catch {
+      const popup = await msalInstance.acquireTokenPopup({
+        scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
+      });
+      return popup.accessToken;
+    }
   };
 
-  const pedidos = [
-    {
-      id: "PED-2024011",
-      fecha: "20 Feb 2025",
-      total: 129990,
-      estado: "Entregado",
-      items: [
-        { nombre: "Teclado Mecánico RGB", cantidad: 1, precio: 59990 },
-        { nombre: "Mouse Gamer Inalámbrico", cantidad: 1, precio: 69990 },
-      ],
-    },
-    {
-      id: "PED-2024012",
-      fecha: "15 Ene 2025",
-      total: 89990,
-      estado: "En camino",
-      items: [{ nombre: "Audífonos HyperX", cantidad: 1, precio: 89990 }],
-    },
-  ];
+  useEffect(() => {
+    const fetchCliente = async () => {
+      try {
+        const token = await obtenerToken();
+        const url = `${endpointClientes}/email/${encodeURIComponent(userEmail)}`;
 
-  const [openPedido, setOpenPedido] = useState(null);
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("No se pudo obtener cliente");
+
+        const data = await res.json();
+        setCliente(data);
+        fetchPedidos(data.id);
+
+      } catch (err) {
+        console.error("Error obteniendo cliente:", err);
+      }
+    };
+
+    const fetchPedidos = async (idCliente) => {
+      try {
+        const token = await obtenerToken();
+
+        const url = `${endpointOrdenes}/cliente/${idCliente}/historial`;
+
+        const res = await fetch(url, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) throw new Error("No se pudieron obtener pedidos");
+
+        const data = await res.json();
+        setPedidos(data);
+
+      } catch (err) {
+        console.error("Error obteniendo pedidos:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userEmail) fetchCliente();
+
+  }, [userEmail]);
+
 
   const togglePedido = (id) => {
     setOpenPedido(openPedido === id ? null : id);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <p className="text-slate-600">Cargando perfil...</p>
+      </div>
+    );
+  }
+
+  if (!cliente) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <p className="text-red-600">No se pudo cargar la información del perfil.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <Navbar />
 
       <main className="pt-[90px] pb-16 max-w-5xl mx-auto px-4">
+
         {/* TARJETA PRINCIPAL DE PERFIL */}
         <section className="bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden">
+
           {/* BANNER SUPERIOR */}
           <div className="h-32 bg-gradient-to-r from-orange-600 via-orange-400 to-orange-300" />
 
-          {/* AVATAR + NOMBRE + ROL */}
+          {/* AVATAR + NOMBRE */}
           <div className="flex flex-col items-center -mt-16 pb-6 px-6">
             <img
-              src={user.avatar}
-              alt="Foto de perfil"
+              src="https://i.pravatar.cc/300"
               className="w-28 h-28 rounded-3xl object-cover border-4 border-white shadow-xl"
             />
-
-            <h2 className="mt-4 text-2xl md:text-3xl font-bold text-slate-900 text-center">
-              {user.nombre}
+            <h2 className="mt-4 text-2xl md:text-3xl font-bold">
+              {cliente.nombre}
             </h2>
-            <p className="text-slate-500 text-sm text-center">{user.correo}</p>
 
-            <span className="mt-3 inline-flex items-center gap-2 text-xs font-semibold bg-orange-50 text-orange-700 px-4 py-1.5 rounded-full border border-orange-200">
-              <span className="inline-block w-2 h-2 rounded-full bg-orange-500" />
-              {user.rol}
-            </span>
+            <p className="text-slate-500 text-sm">{cliente.email}</p>
           </div>
 
-          {/* INFO DEL USUARIO */}
+          {/* INFO PERSONAL */}
           <div className="border-t border-slate-200 px-8 pb-8 pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {/* TELÉFONO */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm">
                 <p className="text-xs text-slate-500">Teléfono</p>
-                <p className="text-sm font-semibold mt-1">{user.telefono}</p>
-              </div>
-
-              {/* DIRECCIÓN */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-                <p className="text-xs text-slate-500">Dirección</p>
-                <p className="text-sm font-semibold mt-1">{user.direccion}</p>
-              </div>
-
-              {/* FECHA REGISTRO */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm">
-                <p className="text-xs text-slate-500">Fecha de registro</p>
                 <p className="text-sm font-semibold mt-1">
-                  {user.fechaRegistro}
+                  {cliente.telefono || "No registrado"}
                 </p>
               </div>
-            </div>
 
-            {/* BOTONES ACCIÓN */}
-            <div className="mt-8 flex gap-4 flex-wrap">
-              <button className="px-6 py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-500 active:scale-95 transition">
-                Editar perfil
-              </button>
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl shadow-sm">
+                <p className="text-xs text-slate-500">Dirección</p>
+                <p className="text-sm font-semibold mt-1">
+                  {cliente.direccion || "No registrada"}
+                </p>
+              </div>
 
-              <button className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl font-semibold hover:bg-slate-50 active:scale-95 transition">
-                Cambiar contraseña
-              </button>
             </div>
           </div>
         </section>
 
-        {/* COLLAPSE DE PEDIDOS */}
+        {/* HISTORIAL DE PEDIDOS */}
         <section className="mt-10 bg-white rounded-3xl shadow-xl p-8 border border-slate-200">
-          <h3 className="text-xl font-bold text-slate-900 mb-4">
-            Mis pedidos
-          </h3>
+          <h3 className="text-xl font-bold mb-4">Mis pedidos</h3>
 
           {pedidos.length === 0 ? (
             <p className="text-sm text-slate-500">
-              Aún no has realizado pedidos. Cuando compres, aparecerán aquí ✨
+              Aún no has realizado pedidos.
             </p>
           ) : (
             <div className="space-y-4">
               {pedidos.map((p) => (
-                <div
-                  key={p.id}
-                  className="border border-slate-200 rounded-2xl overflow-hidden bg-slate-50"
-                >
-                  {/* HEADER COLLAPSE */}
+                <div key={p.idOrden} className="border border-slate-200 rounded-2xl bg-slate-50">
+
+                  {/* HEADER */}
                   <button
-                    onClick={() => togglePedido(p.id)}
-                    className="w-full flex justify-between items-center p-4 text-left hover:bg-slate-100 transition"
+                    onClick={() => togglePedido(p.idOrden)}
+                    className="w-full flex justify-between items-center p-4 hover:bg-slate-100 transition"
                   >
                     <div>
-                      <p className="font-semibold text-sm md:text-base">
-                        {p.id}
+                      <p className="font-semibold text-sm">
+                        Orden #{p.idOrden}
                       </p>
                       <p className="text-xs text-slate-500 mt-0.5">
-                        {p.fecha} —{" "}
-                        <span
-                          className={
-                            p.estado === "Entregado"
-                              ? "text-emerald-600 font-semibold"
-                              : "text-amber-600 font-semibold"
-                          }
-                        >
-                          {p.estado}
+                        {p.fechaCreacion} —
+                        <span className="text-orange-700 font-semibold">
+                          {p.estadoOrden}
                         </span>
                       </p>
                     </div>
 
-                    {openPedido === p.id ? (
+                    {openPedido === p.idOrden ? (
                       <ChevronUpIcon className="w-5 h-5" />
                     ) : (
                       <ChevronDownIcon className="w-5 h-5" />
                     )}
                   </button>
 
-                  {/* CONTENIDO COLLAPSE */}
-                  {openPedido === p.id && (
+                  {/* DETALLES */}
+                  {openPedido === p.idOrden && (
                     <div className="p-4 bg-white border-t border-slate-200">
                       <ul className="space-y-3">
-                        {p.items.map((item, idx) => (
-                          <li
-                            key={idx}
-                            className="flex justify-between text-sm text-slate-700"
-                          >
+                        {p.listaDetalle.map((item) => (
+                          <li key={item.idDetalleOrden} className="flex justify-between text-sm">
                             <span>
-                              {item.nombre}{" "}
-                              <span className="text-xs text-slate-500">
-                                × {item.cantidad}
-                              </span>
+                              {item.producto.nombre}{" "}
+                              <span className="text-xs text-slate-500">× {item.cantidad}</span>
                             </span>
-                            <span className="font-semibold text-orange-600">
-                              ${item.precio.toLocaleString()}
+                            <span className="text-orange-600 font-semibold">
+                              ${item.subtotal.toLocaleString()}
                             </span>
                           </li>
                         ))}
@@ -188,26 +217,11 @@ export default function Perfil() {
                       </div>
                     </div>
                   )}
+
                 </div>
               ))}
             </div>
           )}
-        </section>
-
-        {/* MEMBRESÍA */}
-        <section className="mt-10 bg-slate-900 text-white rounded-3xl shadow-xl p-8">
-          <h3 className="text-xl font-semibold mb-2">Membresía Premium</h3>
-          <p className="text-sm text-slate-300">
-            Descuentos exclusivos, soporte prioritario y acceso anticipado a
-            ofertas.
-          </p>
-
-          <button
-            onClick={() => navigate("/beneficios")}
-            className="mt-4 px-5 py-3 bg-orange-500 rounded-xl font-semibold hover:bg-orange-400 active:scale-95 transition"
-          >
-            Ver beneficios
-          </button>
         </section>
       </main>
     </div>

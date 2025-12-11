@@ -12,8 +12,9 @@ import {
   CubeIcon,
   EnvelopeIcon
 } from "@heroicons/react/24/outline";
+
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
 import "../Navbar/collapse.css";
@@ -23,6 +24,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [productsMenuOpen, setProductsMenuOpen] = useState(false);
+  const [categoriesCollapseOpen, setCategoriesCollapseOpen] = useState(false);
 
   const categoriesRef = useRef(null);
   const profileMenuRef = useRef(null);
@@ -31,6 +33,9 @@ export default function Navbar() {
   const { instance, accounts } = useMsal();
   const isAuthenticated = useIsAuthenticated();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isActiveCategory = (path) => location.pathname === path;
 
   const goHome = () => navigate("/");
   const goContacto = () => navigate("/contacto");
@@ -98,20 +103,14 @@ export default function Navbar() {
               <Bars3Icon className="w-6 h-6" />
             </button>
 
-            <h1
-              onClick={goHome}
-              className="text-lg font-semibold cursor-pointer"
-            >
+            <h1 onClick={goHome} className="text-lg font-semibold cursor-pointer">
               <span className="text-orange-600">Tech</span> Factory
             </h1>
           </div>
 
           {/* LINKS DESKTOP */}
           <ul className="hidden md:flex gap-8 font-medium">
-            <li
-              className="hover:text-orange-600 cursor-pointer"
-              onClick={goHome}
-            >
+            <li className="hover:text-orange-600 cursor-pointer" onClick={goHome}>
               Inicio
             </li>
             <li
@@ -167,56 +166,42 @@ export default function Navbar() {
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="flex items-center gap-2"
                 >
-                  <div className="flex items-center justify-center rounded-full bg-orange-600 text-white font-bold text-xl w-12 h-12 min-w-[3rem] min-h-[3rem]">
+                  <div className="flex items-center justify-center rounded-full bg-orange-600 text-white font-bold text-xl w-12 h-12">
                     {profileLetter}
                   </div>
-
                   <ChevronDownIcon className="w-4 h-4" />
                 </button>
 
                 {menuOpen && (
                   <div className="absolute right-0 mt-3 w-64 bg-white shadow-xl rounded-2xl border border-slate-200 z-50 overflow-hidden animate-[fadeIn_.2s_ease-out]">
-                    {/* HEADER USUARIO */}
                     <div className="p-4 border-b border-slate-100 flex items-center gap-3">
-                      <div className="flex items-center justify-center rounded-full bg-orange-600 text-white font-bold text-xl w-12 h-12 min-w-[3rem] min-h-[3rem]">
+                      <div className="w-12 h-12 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-xl">
                         {profileLetter}
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-800 text-sm leading-tight">
-                          {profileName}
-                        </p>
+                        <p className="font-semibold text-slate-800">{profileName}</p>
                         <p className="text-xs text-slate-500">Mi cuenta</p>
                       </div>
                     </div>
 
-                    {/* MENÚ */}
                     <div className="py-2">
                       <button
                         onClick={goPerfil}
-                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition text-left"
+                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition"
                       >
                         <UserIcon className="w-5 h-5 text-slate-500" />
-                        <span className="text-sm font-medium">Mi perfil</span>
-                      </button>
-
-                      <button className="w-full flex items-center gap-3 px-4 py-2 hover:bg-slate-50 transition text-left">
-                        <Cog8ToothIcon className="w-5 h-5 text-slate-500" />
-                        <span className="text-sm font-medium">
-                          Configuración
-                        </span>
+                        Mi perfil
                       </button>
                     </div>
 
-                    {/* LOGOUT */}
                     <div className="border-t border-slate-200" />
+
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 transition rounded-b-2xl"
+                      className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 hover:bg-red-50 transition"
                     >
                       <ArrowRightStartOnRectangleIcon className="w-5 h-5" />
-                      <span className="text-sm font-semibold">
-                        Cerrar sesión
-                      </span>
+                      Cerrar sesión
                     </button>
                   </div>
                 )}
@@ -226,7 +211,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* MENÚ PRODUCTOS */}
+      {/* MENÚ PRODUCTOS DESPLEGABLE SUPERIOR */}
       {productsMenuOpen && (
         <div
           ref={categoriesRef}
@@ -235,7 +220,7 @@ export default function Navbar() {
           <div className="max-w-7xl mx-auto px-6 py-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
             <div
               onClick={() => navigate("/categorias/tarjetas-video")}
-              className="p-4 border rounded-xl hover:bg-slate-50 cursor-pointer"
+              className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
             >
               <h3 className="font-semibold">Tarjetas de Video</h3>
               <p className="text-xs text-slate-500">AMD • NVIDIA</p>
@@ -243,7 +228,7 @@ export default function Navbar() {
 
             <div
               onClick={() => navigate("/categorias/procesadores")}
-              className="p-4 border rounded-xl hover:bg-slate-50 cursor-pointer"
+              className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
             >
               <h3 className="font-semibold">Procesadores</h3>
               <p className="text-xs text-slate-500">Intel • Ryzen</p>
@@ -251,7 +236,7 @@ export default function Navbar() {
 
             <div
               onClick={() => navigate("/categorias/almacenamiento")}
-              className="p-4 border rounded-xl hover:bg-slate-50 cursor-pointer"
+              className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
             >
               <h3 className="font-semibold">Almacenamiento</h3>
               <p className="text-xs text-slate-500">SSD • HDD</p>
@@ -259,7 +244,7 @@ export default function Navbar() {
 
             <div
               onClick={() => navigate("/categorias/ram")}
-              className="p-4 border rounded-xl hover:bg-slate-50 cursor-pointer"
+              className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
             >
               <h3 className="font-semibold">RAM</h3>
               <p className="text-xs text-slate-500">DDR4 • DDR5</p>
@@ -268,7 +253,7 @@ export default function Navbar() {
         </div>
       )}
 
-      {/* OVERLAY */}
+      {/* SIDEBAR IZQUIERDO */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
@@ -276,16 +261,15 @@ export default function Navbar() {
         />
       )}
 
-      {/* === SIDEBAR IZQUIERDO === */}
       <aside
         className={`fixed top-0 left-0 h-full w-72 bg-white border-r border-slate-200 shadow-2xl z-50 
         transition-transform duration-300 rounded-r-2xl 
         flex flex-col justify-between
         ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {/* HEADER */}
+        {/* HEADER SIDEBAR */}
         <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight">
+          <h2 className="text-xl font-bold text-slate-800">
             <span className="text-orange-600">Tech</span> Factory
           </h2>
 
@@ -297,9 +281,9 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* CONTENIDO CENTRADO DEL MENÚ */}
+        {/* CONTENIDO SIDEBAR */}
         <nav className="p-4 flex-1">
-          <ul className="flex flex-col gap-1 text-sm font-medium text-slate-700">
+          <ul className="flex flex-col gap-1 text-sm font-medium text-slate-900">
 
             {/* HOME */}
             <li
@@ -310,13 +294,94 @@ export default function Navbar() {
               Inicio
             </li>
 
-            {/* PRODUCTOS */}
-            <li
-              onClick={goProductosPage}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
-            >
-              <CubeIcon className="w-5 h-5 text-orange-500" />
-              Productos
+            {/* PRODUCTOS CON COLAPSE */}
+            <li>
+              <button
+                onClick={() => setCategoriesCollapseOpen(!categoriesCollapseOpen)}
+                className="flex w-full items-center justify-between px-4 py-3 rounded-xl hover:bg-orange-50 cursor-pointer transition"
+              >
+                <span className="flex items-center gap-3">
+                  <CubeIcon className="w-5 h-5 text-orange-500" />
+                  Productos
+                </span>
+
+                <ChevronDownIcon
+                  className={`w-5 h-5 text-slate-600 transition-transform ${
+                    categoriesCollapseOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* COLAPSE */}
+              <div
+                className={`overflow-hidden transition-all duration-300 ${
+                  categoriesCollapseOpen ? "max-h-80" : "max-h-0"
+                }`}
+              >
+                <ul className="pl-10 pr-4 py-2 flex flex-col gap-2 text-sm">
+
+                  <li
+                    onClick={() => {
+                      navigate("/categorias/tarjetas-video");
+                      setSidebarOpen(false);
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
+                      ${
+                        isActiveCategory("/categorias/tarjetas-video")
+                          ? "bg-orange-100 text-orange-700"
+                          : "hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                  >
+                    Tarjetas de Video
+                  </li>
+
+                  <li
+                    onClick={() => {
+                      navigate("/categorias/procesadores");
+                      setSidebarOpen(false);
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
+                      ${
+                        isActiveCategory("/categorias/procesadores")
+                          ? "bg-orange-100 text-orange-700"
+                          : "hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                  >
+                    Procesadores
+                  </li>
+
+                  <li
+                    onClick={() => {
+                      navigate("/categorias/almacenamiento");
+                      setSidebarOpen(false);
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
+                      ${
+                        isActiveCategory("/categorias/almacenamiento")
+                          ? "bg-orange-100 text-orange-700"
+                          : "hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                  >
+                    Almacenamiento
+                  </li>
+
+                  <li
+                    onClick={() => {
+                      navigate("/categorias/ram");
+                      setSidebarOpen(false);
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
+                      ${
+                        isActiveCategory("/categorias/ram")
+                          ? "bg-orange-100 text-orange-700"
+                          : "hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                  >
+                    RAM
+                  </li>
+
+                </ul>
+              </div>
             </li>
 
             {/* CARRITO */}
@@ -339,23 +404,14 @@ export default function Navbar() {
           </ul>
         </nav>
 
-        {/* FOOTER – USUARIO Y LOGOUT */}
+        {/* FOOTER */}
         {isAuthenticated && (
           <div className="px-4 pb-6 border-t border-slate-200 pt-4">
-
-            {/* PERFIL */}
             <button
               onClick={goPerfil}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 transition text-left"
             >
-              <div
-                className="
-                w-10 h-10 
-                min-w-[2.5rem] min-h-[2.5rem] 
-                rounded-full bg-orange-600 text-white 
-                flex items-center justify-center 
-                font-bold text-lg aspect-square flex-none"
-              >
+              <div className="w-10 h-10 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-lg">
                 {profileLetter}
               </div>
 
@@ -365,41 +421,32 @@ export default function Navbar() {
               </div>
             </button>
 
-            {/* LOGOUT */}
             <button
               onClick={handleLogout}
-              className="mt-3 w-full flex items-center gap-3 px-4 py-3 
-              rounded-xl hover:bg-red-50 transition text-left text-red-600"
+              className="mt-3 w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 transition text-left text-red-600"
             >
               <ArrowRightStartOnRectangleIcon className="w-5 h-5" />
-              <span className="text-sm font-semibold">Cerrar sesión</span>
+              Cerrar sesión
             </button>
           </div>
         )}
       </aside>
 
-      {/* OVERLAY CARRITO */}
+      {/* SIDEBAR DERECHO (CARRITO) */}
       {cartOpen && (
         <div
           onClick={() => setCartOpen(false)}
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
         />
       )}
-      {/* === SIDEBAR DERECHO */}
+
       <aside
-        className={`
-          fixed top-0 right-0 h-full w-80 bg-white 
-          border-l border-slate-200 shadow-2xl z-50 
-          transition-transform duration-300 rounded-l-2xl 
-          flex flex-col 
-          ${cartOpen ? "translate-x-0" : "translate-x-full"}
-        `}
+        className={`fixed top-0 right-0 h-full w-80 bg-white border-l border-slate-200 shadow-2xl z-50 
+        transition-transform duration-300 rounded-l-2xl 
+        flex flex-col ${cartOpen ? "translate-x-0" : "translate-x-full"}`}
       >
-        {/* HEADER */}
         <div className="p-5 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-slate-800 tracking-tight">
-            Tu carrito
-          </h2>
+          <h2 className="text-xl font-bold text-slate-800">Tu carrito</h2>
 
           <button
             onClick={() => setCartOpen(false)}
@@ -409,7 +456,6 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* LISTA DE PRODUCTOS */}
         <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
           {cart.length === 0 ? (
             <p className="text-center text-slate-500 mt-10">
@@ -434,9 +480,7 @@ export default function Navbar() {
                 />
 
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-slate-800">
-                    {item.nombre}
-                  </p>
+                  <p className="text-sm font-semibold text-slate-800">{item.nombre}</p>
                   <p className="text-xs text-slate-500">
                     Cantidad: {item.cantidad}
                   </p>
@@ -450,23 +494,14 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* FOOTER */}
         <div className="p-5 border-t border-slate-200">
-          {/* TOTAL */}
           <div className="flex justify-between items-center mb-4">
             <span className="font-semibold text-slate-700">Total:</span>
             <span className="font-bold text-orange-600 text-lg">
-              $
-              {cart
-                .reduce(
-                  (total, item) => total + item.precio * item.cantidad,
-                  0
-                )
-                .toLocaleString()}
+              ${cart.reduce((t, i) => t + i.precio * i.cantidad, 0).toLocaleString()}
             </span>
           </div>
 
-          {/* BOTÓN */}
           <button
             onClick={goCarrito}
             className="w-full py-3 bg-orange-600 text-white rounded-xl font-semibold hover:bg-orange-500 active:scale-95 transition"

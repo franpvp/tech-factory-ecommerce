@@ -3,6 +3,8 @@ import Navbar from "../../components/Navbar/Navbar.jsx";
 import { useCart } from "../../context/CartContext";
 import { useNavigate } from "react-router-dom";
 
+import SkeletonCard from "../../components/Skeleton/SkeletonCard.jsx";
+
 const slides = [
   {
     id: 1,
@@ -103,11 +105,13 @@ const Home = () => {
         <section className="mt-10">
           <div className="max-w-6xl mx-auto px-4 md:px-6">
             <h3 className="text-xl md:text-2xl font-semibold mb-4">Productos destacados</h3>
-
             {loading && (
-              <p className="text-center text-slate-600">Cargando productos...</p>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))}
+              </div>
             )}
-
             {!loading && productos.length > 0 && (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {productos.map((producto) => (
@@ -133,13 +137,14 @@ const Home = () => {
                         {producto.descripcion}
                       </p>
 
-                      <div className="mt-auto flex items-center justify-between">
-                        <span className="text-base font-bold text-orange-500">
+                      <div className="mt-auto flex flex-col gap-3">
+                        {/* PRECIO */}
+                        <span className="text-lg font-extrabold text-orange-600">
                           ${producto.precio.toLocaleString()}
                         </span>
 
+                        {/* BOTÓN AGREGAR */}
                         <button
-                          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-900 text-white hover:bg-slate-800 transition"
                           onClick={(e) => {
                             e.stopPropagation();
                             addToCart({
@@ -147,11 +152,36 @@ const Home = () => {
                               nombre: producto.nombre,
                               precio: producto.precio,
                               imagenUrl: producto.imagenUrl,
+                              cantidad: 1,
                             });
                           }}
+                          className="w-full bg-slate-900 text-white py-2 rounded-xl text-sm font-semibold 
+                                    hover:bg-slate-800 active:scale-[0.97] transition"
                         >
-                          Agregar
+                          Agregar al carrito
                         </button>
+
+                        {/* BOTÓN COMPRAR AHORA */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+
+                            addToCart({
+                              idProducto: producto.id,
+                              nombre: producto.nombre,
+                              precio: producto.precio,
+                              imagenUrl: producto.imagenUrl,
+                              cantidad: 1,
+                            });
+
+                            navigate("/carrito");
+                          }}
+                          className="w-full border border-orange-600 text-orange-600 py-2 rounded-xl 
+                                    text-sm font-semibold hover:bg-orange-50 active:scale-[0.97] transition"
+                        >
+                          Comprar ahora
+                        </button>
+
                       </div>
                     </div>
                   </article>
@@ -165,7 +195,6 @@ const Home = () => {
           </div>
         </section>
       </main>
-
       {/* FOOTER */}
       <footer className="bg-slate-900 text-slate-300 mt-16 py-10 border-t border-slate-700">
         <div className="max-w-6xl mx-auto px-6 md:px-10 grid grid-cols-1 md:grid-cols-3 gap-8">

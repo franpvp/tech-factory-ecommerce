@@ -47,7 +47,7 @@ export default function AdminRoles() {
 
         setRoles(mapeados);
       } catch (err) {
-        setApiError("No se pudieron cargar los roles");
+        setApiError("");
       } finally {
         setLoading(false);
       }

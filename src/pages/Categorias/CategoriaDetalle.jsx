@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
 
+import SkeletonCard from "../../components/Skeleton/SkeletonCard";
+
 export default function CategoriaDetalle() {
 
   const { categoria } = useParams();
@@ -13,12 +15,10 @@ export default function CategoriaDetalle() {
   const [productos, setProductos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Normaliza (convierte "TARJETAS GRAFICAS" → "tarjetas-graficas")
   const normalizar = (valor) => {
     return valor?.toLowerCase().replaceAll(" ", "-") ?? "";
   };
 
-  // Alias para soportar URLs alternativas
   const aliasCategorias = {
     "tarjetas-video": "tarjetas-graficas",
     "tarjetas-grafica": "tarjetas-graficas",
@@ -54,13 +54,11 @@ export default function CategoriaDetalle() {
       const categoriaURL = categoria.toLowerCase();
       const categoriaURLFinal = aliasCategorias[categoriaURL] || categoriaURL;
 
-      console.log("🟧 URL buscada:", categoriaURLFinal);
-
       // Filtrar productos según categoría
       const filtrado = productosConCategoria.filter((p) => {
         const catP = normalizar(p.categoriaNombre);
 
-        console.log("🟦 Producto:", p.nombre, "| cat normalizada:", catP);
+        console.log("Producto:", p.nombre, "| cat normalizada:", catP);
 
         return catP === categoriaURLFinal;
       });
@@ -88,7 +86,11 @@ export default function CategoriaDetalle() {
         <h1 className="text-2xl font-bold mb-6">{titulo}</h1>
 
         {loading ? (
-          <p className="text-center text-slate-500">Cargando...</p>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         ) : productos.length === 0 ? (
           <p className="text-center text-slate-500">No hay productos en esta categoría.</p>
         ) : (
@@ -96,36 +98,49 @@ export default function CategoriaDetalle() {
             {productos.map((p) => (
               <article
                 key={p.id}
-                className="bg-white rounded-2xl shadow border border-slate-200 hover:-translate-y-1 transition flex flex-col cursor-pointer"
+                className="bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col overflow-hidden 
+                          hover:shadow-xl hover:-translate-y-1 transition cursor-pointer"
                 onClick={() => navigate(`/producto/${p.id}`)}
               >
-                <div className="h-40 bg-white flex items-center justify-center">
+                {/* Imagen */}
+                <div className="h-44 bg-white flex items-center justify-center p-4">
                   <img
                     src={p.imagenUrl}
                     alt={p.nombre}
-                    className="max-h-full max-w-full object-contain"
+                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
 
-                <div className="p-4 flex flex-col gap-2">
-                  <h3 className="font-semibold text-slate-900">{p.nombre}</h3>
-                  <p className="text-sm text-slate-500">{p.descripcion}</p>
+                {/* Contenido */}
+                <div className="p-4 flex flex-col flex-1">
+                  <h3 className="text-base font-semibold text-slate-900 line-clamp-1">
+                    {p.nombre}
+                  </h3>
 
-                  <div className="flex justify-between mt-2">
-                    <span className="font-bold text-orange-600">
+                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                    {p.descripcion}
+                  </p>
+
+                  {/* Precio + Botón */}
+                  <div className="flex items-center justify-between mt-4">
+                    <span className="text-lg font-bold text-orange-600">
                       ${p.precio.toLocaleString()}
                     </span>
 
                     <button
-                      className="text-xs bg-slate-900 text-white px-3 py-1.5 rounded-full hover:bg-slate-700"
                       onClick={(e) => {
-                        e.stopPropagation();  
+                        e.stopPropagation();
                       }}
+                      className="px-3 py-1.5 text-xs font-semibold bg-slate-900 text-white rounded-full 
+                                hover:bg-slate-700 active:scale-95 transition"
                     >
                       Agregar
                     </button>
                   </div>
                 </div>
+
+                {/* Barra inferior indicadora de categoría */}
+                <div className="h-1 w-full bg-gradient-to-r from-orange-500 to-orange-300"></div>
               </article>
             ))}
           </div>

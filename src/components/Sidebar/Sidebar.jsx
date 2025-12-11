@@ -16,7 +16,6 @@ const Sidebar = ({ showPanel, openPanel }) => {
 
   return (
     <div className="sidebarWrapper">
-      
       <aside className="iconBar">
         {menuConfig.map((item) => (
           <button

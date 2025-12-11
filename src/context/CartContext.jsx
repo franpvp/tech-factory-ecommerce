@@ -63,18 +63,34 @@ export function CartProvider({ children }) {
 
   // Agregar producto al carrito
   const addToCart = (producto) => {
+    const id = producto.idProducto ?? producto.id;
+
+    if (!id) {
+      console.error("❌ Error: producto no tiene idProducto ni id:", producto);
+      return;
+    }
+
     setCart((prev) => {
-      const existente = prev.find((p) => p.idProducto === producto.idProducto);
+      const existente = prev.find((p) => p.idProducto === id);
 
       if (existente) {
         return prev.map((p) =>
-          p.idProducto === producto.idProducto
+          p.idProducto === id
             ? { ...p, cantidad: p.cantidad + 1 }
             : p
         );
       }
 
-      return [...prev, { ...producto, cantidad: 1 }];
+      return [
+        ...prev,
+        {
+          idProducto: id,
+          nombre: producto.nombre ?? "",
+          precio: producto.precio ?? 0,
+          imagenUrl: producto.imagenUrl ?? "",
+          cantidad: 1,
+        },
+      ];
     });
   };
 

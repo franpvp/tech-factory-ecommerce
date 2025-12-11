@@ -3,6 +3,7 @@ import Navbar from "../../components/Navbar/Navbar";
 import { useNavigate } from "react-router-dom";
 import './Categorias.css';
 
+
 const categorias = [
   { slug: "tarjetas-video", nombre: "Tarjetas de Video (AMD / NVIDIA)" },
   { slug: "procesadores", nombre: "Procesadores" },

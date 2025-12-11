@@ -4,16 +4,48 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import Navbar from "../../components/Navbar/Navbar";
 import { useMsal } from "@azure/msal-react";
+import { InteractionRequiredAuthError } from "@azure/msal-browser";
 
 import PaymentLoading from "../../components/Loading/PaymentLoading";
 
 const COSTO_ENVIO = 4990;
 
+async function obtenerToken(instance, accounts) {
+  try {
+    if (!accounts?.length) return null;
+
+    try {
+      const silent = await instance.acquireTokenSilent({
+        scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
+        account: accounts[0],
+      });
+
+      return silent.accessToken;
+
+    } catch (silentError) {
+      if (silentError instanceof InteractionRequiredAuthError) {
+
+        const popup = await instance.acquireTokenPopup({
+          scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
+        });
+
+        return popup.accessToken;
+      }
+
+      throw silentError;
+    }
+
+  } catch (err) {
+    console.error("Error obteniendo token:", err);
+    return null;
+  }
+}
+
 export default function Pagos() {
 
   const endpointObtenerClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
   const navigate = useNavigate();
-  const { accounts } = useMsal();
+  const { instance, accounts } = useMsal();
 
   const [waitingForPayment, setWaitingForPayment] = useState(false);
   const [timeoutId, setTimeoutId] = useState(null);
@@ -142,23 +174,40 @@ export default function Pagos() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ===============================================
-  // 🔥 POLLING DE ESTADO DE LA ORDEN
-  // ===============================================
-  const pollEstadoOrden = (idOrdenLocal) => {
-    const url = `http://localhost:8081/ordenes/cliente/${idCliente}/ultima`;
+  const pollEstadoOrden = async (idOrdenLocal) => {
+
+    const endpointOrdenes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
+    const url = `${endpointOrdenes}/cliente/${idCliente}/ultima`;
+
+    // Obtener token ANTES de comenzar el intervalo
+    const token = await obtenerToken(instance, accounts);
+
+    if (!token) {
+      console.error("❌ No se pudo obtener token para polling.");
+      return;
+    }
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(url);
+        const res = await fetch(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
         if (!res.ok) return;
 
         const data = await res.json();
         console.log("📡 Estado orden:", data);
 
-        const estado = data.estadoOrden?.toUpperCase().replace(/[\s_-]+/g, "_").trim();
+        const estado = data.estadoOrden
+          ?.toUpperCase()
+          .replace(/[\s_-]+/g, "_")
+          .trim();
 
-        // 🔥 Si el estado CAMBIÓ y ya no es PENDIENTE:
+        // Si CAMBIÓ de estado
         if (estado !== "PAGO_PENDIENTE") {
 
           clearInterval(interval);
@@ -182,9 +231,8 @@ export default function Pagos() {
     setPollInterval(interval);
   };
 
-  // ===============================================
-  // 🔥 SUBMIT DEL PAGO
-  // ===============================================
+
+  // SUBMIT DEL PAGO
   const submitPayment = async () => {
     setApiError(null);
 
@@ -203,11 +251,17 @@ export default function Pagos() {
     try {
       setLoading(true);
 
-      const url = "http://localhost:8081/ordenes";
+      const token = await obtenerToken(instance, accounts);
+      if (!token) throw new Error("No se pudo obtener token de autenticación");
+
+      const url = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
 
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -218,7 +272,6 @@ export default function Pagos() {
       localStorage.removeItem("despacho");
       setWaitingForPayment(true);
 
-      // TIMEOUT GLOBAL - 10 segundos
       const timeout = setTimeout(() => {
         console.warn("⏳ Timeout: no hubo respuesta en 10s.");
 
@@ -227,15 +280,15 @@ export default function Pagos() {
         navigate("/pago-fallido", {
           state: { reason: "Tiempo de espera agotado. No se obtuvo respuesta del pago." }
         });
-
       }, 10000);
 
       setTimeoutId(timeout);
 
+      // Inicia polling
       pollEstadoOrden(data.idOrden);
 
     } catch (err) {
-      console.error("❌ Error:", err);
+      console.error("Error submitPayment:", err);
       setApiError("Ocurrió un error al procesar el pago. Intenta nuevamente.");
     } finally {
       setLoading(false);

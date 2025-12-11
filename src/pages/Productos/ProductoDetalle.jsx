@@ -7,6 +7,28 @@ import { msalInstance } from "../../auth/authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import "../../components/Navbar/collapse.css";
 
+// === Skeleton Loader para Página de Producto ===
+const ProductoSkeleton = () => (
+  <div className="animate-pulse grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
+    <div className="flex flex-col gap-4">
+      <div className="w-full h-[380px] bg-slate-300 rounded-3xl" />
+      <div className="flex gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="w-20 h-20 bg-slate-300 rounded-xl" />
+        ))}
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-4">
+      <div className="h-8 bg-slate-300 rounded w-3/4" />
+      <div className="h-6 bg-slate-300 rounded w-1/2" />
+      <div className="h-4 bg-slate-300 rounded w-full" />
+      <div className="h-4 bg-slate-300 rounded w-5/6" />
+      <div className="h-12 bg-slate-300 rounded-xl w-1/2 mt-6" />
+    </div>
+  </div>
+);
+
 export default function ProductoDetalle() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -19,18 +41,13 @@ export default function ProductoDetalle() {
 
   const scrollRef = useRef(null);
 
-
   // ======================================================
   // TOKEN EXACTAMENTE COMO RegistrarClienteService
   // ======================================================
   const obtenerToken = async () => {
-
     try {
       const accounts = msalInstance.getAllAccounts();
-      if (accounts.length === 0) {
-        console.warn("No hay cuentas activas en MSAL.");
-        return null;
-      }
+      if (accounts.length === 0) return null;
 
       try {
         const response = await msalInstance.acquireTokenSilent({
@@ -38,24 +55,18 @@ export default function ProductoDetalle() {
           account: accounts[0],
         });
 
-        console.log("TOKEN (silent):", response.accessToken);
         return response.accessToken;
-
       } catch (silentError) {
         if (silentError instanceof InteractionRequiredAuthError) {
-          console.log("Se requiere popup para obtener token.");
-
           const popupResponse = await msalInstance.acquireTokenPopup({
             scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
           });
 
-          console.log("TOKEN (popup):", popupResponse.accessToken);
           return popupResponse.accessToken;
         }
 
         throw silentError;
       }
-
     } catch (err) {
       console.error("Error obteniendo token:", err);
       return null;
@@ -63,29 +74,22 @@ export default function ProductoDetalle() {
   };
 
   // ======================================================
-  // 1. FETCH PRODUCTO (con token)
+  // 1. FETCH PRODUCTO
   // ======================================================
   useEffect(() => {
     const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
+
     async function fetchProducto() {
       try {
         const token = await obtenerToken();
 
-        const res = await fetch(`${endpoint}/${id}`, {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(`${endpoint}/${id}`);
 
         if (!res.ok) throw new Error("Producto no encontrado");
 
         const data = await res.json();
-        console.log("PRODUCTO:", data);
-
         setProducto(data);
         setImagenSeleccionada(data.imagenUrl);
-
       } catch (error) {
         console.error("Error cargando producto:", error);
         setProducto(null);
@@ -98,9 +102,13 @@ export default function ProductoDetalle() {
   }, [id]);
 
   // ======================================================
-  // 2. FETCH RELACIONADOS (también con token)
+  // 2. FETCH RELACIONADOS
   // ======================================================
   useEffect(() => {
+    if (!producto) return;
+
+    const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
+
     async function fetchRelacionados() {
       try {
         const token = await obtenerToken();
@@ -108,38 +116,38 @@ export default function ProductoDetalle() {
         const res = await fetch(endpoint, {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
         });
 
-        const all = await res.json();
+        if (!res.ok) throw new Error("No se pudo obtener productos relacionados");
 
-        if (!producto) return;
+        const all = await res.json();
 
         const filtrados = all.filter(
           (p) =>
             p.idCategoria === producto.idCategoria &&
-            p.idProducto !== producto.idProducto
+            p.id !== producto.id
         );
 
         setRelated(filtrados.slice(0, 10));
-
       } catch (e) {
         console.error("Error cargando productos relacionados:", e);
       }
     }
 
-    if (producto) fetchRelacionados();
+    fetchRelacionados();
   }, [producto]);
 
-
   // ======================================================
-  // 3. LOADING & ERROR
+  // 3. LOADING
   // ======================================================
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <p>Cargando producto...</p>
+      <div className="min-h-screen bg-slate-100">
+        <Navbar />
+        <main className="pt-[90px] max-w-6xl mx-auto px-4 pb-20">
+          <ProductoSkeleton />
+        </main>
       </div>
     );
   }
@@ -147,98 +155,147 @@ export default function ProductoDetalle() {
   if (!producto) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <p className="text-red-600 font-semibold">Producto no encontrado</p>
+        <p className="text-red-600 font-semibold text-lg">Producto no encontrado</p>
       </div>
     );
   }
 
   // ======================================================
-  // 4. UI PRINCIPAL
+  // 4. UI PRINCIPAL MEJORADA
   // ======================================================
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
 
       <main className="pt-[90px] max-w-6xl mx-auto px-4 pb-20">
 
         {/* PRODUCTO */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
 
-          {/* Imagen */}
+          {/* Imagen principal + miniaturas */}
           <div className="flex flex-col gap-4">
-            <img
-              src={imagenSeleccionada}
-              className="w-full h-[380px] rounded-3xl object-cover border shadow-lg"
-            />
+            <div className="w-full h-[420px] rounded-3xl overflow-hidden shadow-lg border bg-white flex items-center justify-center">
+              <img
+                src={imagenSeleccionada}
+                className="w-full h-full object-contain transition-transform duration-300 hover:scale-105"
+              />
+            </div>
 
+            {/* Miniaturas */}
             <div className="flex gap-3">
-              {[producto.imagenUrl, ...(producto.imagenesExtras || [])].map(
-                (img, i) => (
-                  <img
-                    key={i}
-                    src={img}
-                    onClick={() => setImagenSeleccionada(img)}
-                    className={`w-20 h-20 object-cover rounded-xl border cursor-pointer ${
+              {[producto.imagenUrl, ...(producto.imagenesExtras || [])].map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  onClick={() => setImagenSeleccionada(img)}
+                  className={`w-20 h-20 rounded-xl object-cover border cursor-pointer transition 
+                    ${
                       imagenSeleccionada === img
                         ? "ring-2 ring-orange-600"
-                        : "hover:ring-2 hover:ring-orange-600"
+                        : "hover:ring-2 hover:ring-orange-400"
                     }`}
-                  />
-                )
-              )}
+                />
+              ))}
             </div>
           </div>
 
-          {/* Info */}
+          {/* Información del producto */}
           <div className="flex flex-col justify-between">
             <div>
-              <h1 className="text-3xl font-bold">{producto.nombre}</h1>
+              <h1 className="text-4xl font-extrabold">{producto.nombre}</h1>
 
-              <p className="text-orange-600 text-3xl font-extrabold mt-2">
+              <p className="text-orange-600 text-4xl font-black mt-4">
                 ${producto.precio.toLocaleString()}
               </p>
 
-              <p className="text-slate-600 mt-4">{producto.descripcion}</p>
+              <p className="text-slate-600 mt-6 leading-relaxed text-lg">
+                {producto.descripcion}
+              </p>
+
+              {/* Etiquetas */}
+              <div className="mt-4 flex gap-2 flex-wrap">
+                <span className="bg-orange-100 text-orange-700 text-xs px-3 py-1 rounded-full">
+                  {producto.marca || "TechFactory"}
+                </span>
+                <span className="bg-slate-200 text-slate-700 text-xs px-3 py-1 rounded-full">
+                  Garantía 6 meses
+                </span>
+              </div>
             </div>
 
-            <div className="mt-6 flex flex-col gap-3">
+            {/* Botón agregar */}
+            <div className="mt-8 flex flex-col gap-3">
+              {/* AGREGAR AL CARRITO */}
               <button
                 onClick={() =>
                   addToCart({
-                    idProducto: producto.idProducto,
+                    idProducto: producto.id,
                     nombre: producto.nombre,
                     precio: producto.precio,
                     imagenUrl: producto.imagenUrl,
                     cantidad: 1,
                   })
                 }
-                className="bg-orange-600 text-white py-3 rounded-xl text-lg font-semibold hover:bg-orange-500"
+                className="bg-orange-600 text-white py-3 rounded-xl text-lg font-semibold 
+                          hover:bg-orange-500 active:scale-[0.98] transition"
               >
                 Agregar al carrito
               </button>
-            </div>
+
+              {/* COMPRAR AHORA */}
+              <button
+                onClick={() => {
+                  // Agregar al carrito si no existe
+                  addToCart({
+                    idProducto: producto.id,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    imagenUrl: producto.imagenUrl,
+                    cantidad: 1,
+                  });
+
+                  // Llevar al carrito de inmediato
+                  navigate("/carrito");
+                }}
+                className="border border-orange-600 text-orange-600 py-3 rounded-xl 
+                          text-lg font-semibold hover:bg-orange-50 active:scale-[0.98] transition"
+              >
+                Comprar ahora
+              </button>
+
+          </div>
           </div>
 
         </div>
 
         {/* RELACIONADOS */}
-        <section className="mt-12">
-          <h2 className="text-xl font-bold mb-3">Productos relacionados</h2>
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold mb-4">Productos relacionados</h2>
 
           <div className="flex gap-6 overflow-x-auto scrollbar-hide py-4" ref={scrollRef}>
             {related.map((item) => (
               <div
-                key={item.idProducto}
-                className="min-w-[260px] bg-white rounded-xl shadow border"
+                key={item.id}
+                onClick={() => navigate(`/producto/${item.id}`)}
+                className="min-w-[240px] bg-white rounded-2xl shadow-md border hover:shadow-lg cursor-pointer 
+                           overflow-hidden transition"
               >
-                <img src={item.imagenUrl} className="h-40 w-full object-cover" />
+                <img
+                  src={item.imagenUrl}
+                  className="h-40 w-full object-contain bg-white p-2"
+                />
 
                 <div className="p-4">
-                  <h3 className="font-semibold text-sm">{item.nombre}</h3>
-                  <p className="text-orange-600 font-bold mt-2">
+                  <h3 className="font-semibold text-sm line-clamp-1">
+                    {item.nombre}
+                  </h3>
+
+                  <p className="text-orange-600 font-bold mt-2 text-lg">
                     ${item.precio.toLocaleString()}
                   </p>
                 </div>
+
+                <div className="h-1 w-full bg-gradient-to-r from-orange-500 to-orange-300" />
               </div>
             ))}
           </div>
