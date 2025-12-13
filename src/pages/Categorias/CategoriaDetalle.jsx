@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar/Navbar";
-
 import SkeletonCard from "../../components/Skeleton/SkeletonCard";
+import { useCart } from "../../context/CartContext";
 
 export default function CategoriaDetalle() {
-
   const { categoria } = useParams();
   const navigate = useNavigate();
+
+  const { addToCart } = useCart();
 
   const endpointProductos = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
   const endpointCategorias = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_CATEGORIAS;
@@ -29,42 +30,31 @@ export default function CategoriaDetalle() {
     try {
       const [resProductos, resCategorias] = await Promise.all([
         fetch(endpointProductos),
-        fetch(endpointCategorias)
+        fetch(endpointCategorias),
       ]);
 
-      const rawProductos = await resProductos.text();
-      const rawCategorias = await resCategorias.text();
+      const productosData = JSON.parse(await resProductos.text());
+      const categoriasData = JSON.parse(await resCategorias.text());
 
-      const productosData = JSON.parse(rawProductos);
-      const categoriasData = JSON.parse(rawCategorias);
-
-      // Crear mapa idCategoria → nombreCategoria
       const mapaCategorias = {};
-      categoriasData.forEach(cat => {
+      categoriasData.forEach((cat) => {
         mapaCategorias[cat.id] = cat.nombre;
       });
 
-      // Agregar nombre de categoría a cada producto
-      const productosConCategoria = productosData.map(p => ({
+      const productosConCategoria = productosData.map((p) => ({
         ...p,
-        categoriaNombre: mapaCategorias[p.idCategoria] || ""
+        categoriaNombre: mapaCategorias[p.idCategoria] || "",
       }));
 
-      // Normalizar categoría de URL + aplicar alias si existe
       const categoriaURL = categoria.toLowerCase();
       const categoriaURLFinal = aliasCategorias[categoriaURL] || categoriaURL;
 
-      // Filtrar productos según categoría
       const filtrado = productosConCategoria.filter((p) => {
         const catP = normalizar(p.categoriaNombre);
-
-        console.log("Producto:", p.nombre, "| cat normalizada:", catP);
-
         return catP === categoriaURLFinal;
       });
 
       setProductos(filtrado);
-
     } catch (e) {
       console.error("Error:", e);
     } finally {
@@ -92,7 +82,9 @@ export default function CategoriaDetalle() {
             ))}
           </div>
         ) : productos.length === 0 ? (
-          <p className="text-center text-slate-500">No hay productos en esta categoría.</p>
+          <p className="text-center text-slate-500">
+            No hay productos en esta categoría.
+          </p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {productos.map((p) => (
@@ -107,7 +99,7 @@ export default function CategoriaDetalle() {
                   <img
                     src={p.imagenUrl}
                     alt={p.nombre}
-                    className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-contain transition-transform duration-300"
                   />
                 </div>
 
@@ -121,25 +113,57 @@ export default function CategoriaDetalle() {
                     {p.descripcion}
                   </p>
 
-                  {/* Precio + Botón */}
-                  <div className="flex items-center justify-between mt-4">
+                  {/* Precio + Botones */}
+                  <div className="flex flex-col gap-3 mt-4">
+
+                    {/* Precio */}
                     <span className="text-lg font-bold text-orange-600">
                       ${p.precio.toLocaleString()}
                     </span>
 
+                    {/* Botón AGREGAR */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
+                        addToCart({
+                          idProducto: p.id,
+                          nombre: p.nombre,
+                          precio: p.precio,
+                          imagenUrl: p.imagenUrl,
+                          cantidad: 1,
+                        });
                       }}
-                      className="px-3 py-1.5 text-xs font-semibold bg-slate-900 text-white rounded-full 
-                                hover:bg-slate-700 active:scale-95 transition"
+                      className="w-full bg-slate-900 text-white py-2 rounded-xl text-sm font-semibold 
+                                hover:bg-slate-800 active:scale-95 transition"
                     >
-                      Agregar
+                      Agregar al carrito
                     </button>
+
+                    {/* Botón COMPRAR AHORA */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+
+                        addToCart({
+                          idProducto: p.id,
+                          nombre: p.nombre,
+                          precio: p.precio,
+                          imagenUrl: p.imagenUrl,
+                          cantidad: 1,
+                        });
+
+                        navigate("/carrito");
+                      }}
+                      className="w-full border border-orange-600 text-orange-600 py-2 rounded-xl 
+                                text-sm font-semibold hover:bg-orange-50 active:scale-95 transition"
+                    >
+                      Comprar ahora
+                    </button>
+
                   </div>
                 </div>
 
-                {/* Barra inferior indicadora de categoría */}
+                {/* Barra visual */}
                 <div className="h-1 w-full bg-gradient-to-r from-orange-500 to-orange-300"></div>
               </article>
             ))}

@@ -253,32 +253,41 @@ export default function AdminRoles() {
 
       {/* MODAL CREACIÓN */}
       {createOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="bg-zinc-900 w-full max-w-lg rounded-2xl shadow-2xl border border-zinc-700 p-6 relative text-white">
+
+            {/* BOTÓN CERRAR */}
             <button
               onClick={() => setCreateOpen(false)}
-              className="absolute top-3 right-3 text-slate-500 hover:text-slate-700"
+              className="absolute top-3 right-3 text-zinc-400 hover:text-white text-xl"
             >
               ✕
             </button>
 
-            <h2 className="text-xl font-bold mb-4">Crear nuevo rol</h2>
+            <h2 className="text-2xl font-bold mb-4 text-center text-orange-400">
+              Crear nuevo rol
+            </h2>
 
-            <form onSubmit={crearRol} className="space-y-4">
+            <form onSubmit={crearRol} className="space-y-5">
+
+              {/* NOMBRE */}
               <div>
-                <label className="block text-sm font-semibold">Nombre</label>
+                <label className="block text-sm font-semibold mb-1 text-zinc-200">
+                  Nombre del Rol
+                </label>
                 <input
                   type="text"
                   name="nombre"
                   value={createForm.nombre}
                   onChange={handleCreateChange}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                   required
                 />
               </div>
 
+              {/* DESCRIPCIÓN */}
               <div>
-                <label className="block text-sm font-semibold">
+                <label className="block text-sm font-semibold mb-1 text-zinc-200">
                   Descripción
                 </label>
                 <input
@@ -286,26 +295,28 @@ export default function AdminRoles() {
                   name="descripcion"
                   value={createForm.descripcion}
                   onChange={handleCreateChange}
-                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-400 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 mt-4">
+              {/* BOTONES */}
+              <div className="flex justify-end gap-3 pt-3">
                 <button
                   type="button"
                   onClick={() => setCreateOpen(false)}
-                  className="px-4 py-2 rounded-lg border text-sm"
+                  className="px-4 py-2 rounded-lg border border-zinc-500 text-zinc-300 hover:bg-zinc-800"
                 >
                   Cancelar
                 </button>
 
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500"
+                  className="px-5 py-2 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500 transition shadow-md"
                 >
                   Guardar rol
                 </button>
               </div>
+
             </form>
           </div>
         </div>
