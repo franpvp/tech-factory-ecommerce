@@ -108,6 +108,7 @@ export default function Carrito() {
 
                 <button
                   onClick={() => navigate("/despacho")}
+                  data-testid="go-pay-btn"
                   className="mt-6 w-full bg-orange-600 text-white py-2 rounded-lg font-semibold hover:bg-orange-500"
                 >
                   Ir a pagar

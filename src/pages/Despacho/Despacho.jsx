@@ -291,6 +291,7 @@ export default function Despacho() {
               {/* BOTONES */}
               <button
                 onClick={continuar}
+                data-testid='continue-pay-btn'
                 className="mt-6 w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold active:scale-95 transition"
               >
                 Continuar al Pago

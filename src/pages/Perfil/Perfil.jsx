@@ -23,6 +23,12 @@ export default function Perfil() {
   const [openPedido, setOpenPedido] = useState(null);
 
   const obtenerToken = async () => {
+
+
+     const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+        if (isTestMode) {
+            return "TEST_TOKEN";
+          }
     try {
       const accounts = msalInstance.getAllAccounts();
       if (accounts.length === 0) return null;

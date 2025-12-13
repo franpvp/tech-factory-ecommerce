@@ -1,35 +1,6 @@
-import { msalInstance } from "../auth/authConfig";
-import { InteractionRequiredAuthError } from "@azure/msal-browser";
+import { obtenerToken } from "../auth/tokenProvider";
 
 const API = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_INVENTARIOS;
-
-async function obtenerToken() {
-  try {
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length === 0) return null;
-
-    try {
-      const response = await msalInstance.acquireTokenSilent({
-        scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
-        account: accounts[0],
-      });
-
-      return response.accessToken;
-    } catch (silentError) {
-      if (silentError instanceof InteractionRequiredAuthError) {
-        const popupResponse = await msalInstance.acquireTokenPopup({
-          scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
-        });
-        return popupResponse.accessToken;
-      }
-
-      throw silentError;
-    }
-  } catch (err) {
-    console.error("Error obteniendo token:", err);
-    return null;
-  }
-}
 
 export async function getInventarios() {
   const token = await obtenerToken();
@@ -59,9 +30,6 @@ export async function getInventarioPorProducto(idProducto) {
   return res.json();
 }
 
-// ======================================================
-// POST — crear inventario
-// ======================================================
 export async function createInventario(body) {
   const token = await obtenerToken();
 
