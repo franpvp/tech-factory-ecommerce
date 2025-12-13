@@ -1,21 +1,13 @@
-import { msalInstance } from "../auth/authConfig";
-import { InteractionRequiredAuthError } from "@azure/msal-browser";
+// src/services/RegistrarClienteService.js
+
+import { obtenerToken } from "../auth/tokenProvider";
 
 export const RegistrarClienteService = async () => {
-  const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_REGISTRO_CLIENTES;
+  const endpoint =
+    import.meta.env.VITE_SERVICE_ENDPOINT_BFF_REGISTRO_CLIENTES;
 
   try {
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts.length === 0) {
-      console.warn("No hay cuentas activas en MSAL.");
-      return;
-    }
-    let response = await msalInstance.acquireTokenSilent({
-      scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
-      account: accounts[0],
-    });
-
-    const token = response.accessToken;
+    const token = await obtenerToken();
 
     const res = await fetch(endpoint, {
       method: "POST",
@@ -25,21 +17,14 @@ export const RegistrarClienteService = async () => {
     });
 
     if (!res.ok) {
-      throw new Error("Error al sincronizar cliente");
+      const errorText = await res.text().catch(() => "");
+      throw new Error(
+        `Error al registrar cliente. Status: ${res.status} - ${errorText}`
+      );
     }
 
     return await res.json();
   } catch (error) {
-    if (error instanceof InteractionRequiredAuthError) {
-      console.log("Se requiere interacción para obtener token (popup)");
-
-      const resp = await msalInstance.acquireTokenPopup({
-        scopes: ["api://967bfb43-f7a4-47db-8502-588b15908297/access"],
-      });
-
-      return resp;
-    }
-
     console.error("Error en RegistrarClienteService:", error);
     throw error;
   }

@@ -88,6 +88,7 @@ export default function ProductoDetalle() {
             </div>
 
             <button
+              data-testid="add-to-cart-btn"
               className="mt-6 bg-slate-900 text-white py-3 rounded-xl font-semibold hover:bg-slate-800 transition active:scale-95"
               onClick={() =>
                 addToCart({

@@ -11,6 +11,12 @@ import PaymentLoading from "../../components/Loading/PaymentLoading";
 const COSTO_ENVIO = 4990;
 
 async function obtenerToken(instance, accounts) {
+
+    const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+    if (isTestMode) {
+        return "TEST_TOKEN";
+      }
+
   try {
     if (!accounts?.length) return null;
 
@@ -51,7 +57,11 @@ export default function Pagos() {
   const [timeoutId, setTimeoutId] = useState(null);
   const [pollInterval, setPollInterval] = useState(null);
 
-  const userEmail = accounts[0]?.username;
+  const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+
+  const userEmail = isTestMode
+    ? "qa@test.com"
+    : accounts[0]?.username;
 
   const despacho = JSON.parse(localStorage.getItem("despacho"));
   const { cart, listaDetalle } = useCart();
@@ -60,12 +70,26 @@ export default function Pagos() {
 
   // === Obtener cliente por email ===
   useEffect(() => {
-    if (!userEmail) return;
+     if (!userEmail) {
+        console.warn("userEmail es null, no se busca cliente");
+        return;
+      }
 
     const fetchCliente = async () => {
       try {
+        const token = await obtenerToken(instance, accounts);
+        console.log("Token usado:", token);
+        if (!token) throw new Error("No se pudo obtener token");
+
         const URL = `${endpointObtenerClientes}/email/${encodeURIComponent(userEmail)}`;
-        const res = await fetch(URL);
+
+        const res = await fetch(URL, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
 
         if (!res.ok) throw new Error("No se pudo obtener el usuario");
 
@@ -78,7 +102,7 @@ export default function Pagos() {
     };
 
     fetchCliente();
-  }, [userEmail]);
+  }, [userEmail, instance, accounts]);
 
   // === Cleanup de polling & timeout al desmontar ===
   useEffect(() => {
@@ -217,8 +241,8 @@ export default function Pagos() {
           if (estado === "PAGO_CORRECTO") {
             navigate("/confirmacion-compra", { state: { orden: data } });
           } else {
-            navigate("/pago-fallido", { 
-              state: { reason: "El pago fue rechazado." } 
+            navigate("/pago-fallido", {
+              state: { reason: "El pago fue rechazado." }
             });
           }
         }
@@ -237,7 +261,9 @@ export default function Pagos() {
     setApiError(null);
 
     if (!validate()) return;
-    if (!idCliente) return setApiError("No fue posible obtener el cliente.");
+    if (!idCliente && !isTestMode) {
+      return setApiError("No fue posible obtener el cliente.");
+    }
     if (!despacho) return setApiError("No se encontró la información de despacho.");
     if (cart.length === 0) return setApiError("Tu carrito está vacío.");
 
@@ -252,10 +278,13 @@ export default function Pagos() {
       setLoading(true);
 
       const token = await obtenerToken(instance, accounts);
+      console.log("Token usado:", token);
       if (!token) throw new Error("No se pudo obtener token de autenticación");
 
       const url = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
 
+
+       console.log(JSON.stringify(payload))
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -264,6 +293,7 @@ export default function Pagos() {
         },
         body: JSON.stringify(payload),
       });
+
 
       if (!response.ok) throw new Error("Error al crear la orden");
 
@@ -338,7 +368,7 @@ export default function Pagos() {
           {/* FORM */}
           {method === "card" && (
             <form className="space-y-4 animate-fadeIn" onSubmit={(e) => e.preventDefault()}>
-              
+
               {/* Número */}
               <div>
                 <label className="text-sm font-medium text-slate-700">Número de tarjeta</label>
@@ -413,12 +443,13 @@ export default function Pagos() {
             <span className="text-xl font-bold text-orange-600">${total.toLocaleString()}</span>
           </div>
 
-          {apiError && <p className="text-red-500 text-center text-sm mt-3">{apiError}</p>}
+          {apiError && <p data-testid="api-error-message" className="text-red-500 text-center text-sm mt-3">{apiError}</p>}
 
           {/* BOTÓN */}
           <button
             onClick={submitPayment}
             disabled={loading || cart.length === 0}
+            data-testid="accept-pay-btn"
             className="mt-6 w-full bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-xl font-semibold disabled:opacity-60"
           >
             {loading ? "Procesando..." : "Confirmar pago"}

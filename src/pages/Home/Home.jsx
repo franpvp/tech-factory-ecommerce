@@ -155,6 +155,7 @@ const Home = () => {
                               cantidad: 1,
                             });
                           }}
+                          data-testid="add-to-cart-btn"
                           className="w-full bg-slate-900 text-white py-2 rounded-xl text-sm font-semibold 
                                     hover:bg-slate-800 active:scale-[0.97] transition"
                         >
@@ -176,6 +177,7 @@ const Home = () => {
 
                             navigate("/carrito");
                           }}
+                          data-testid="buy-now-btn"
                           className="w-full border border-orange-600 text-orange-600 py-2 rounded-xl 
                                     text-sm font-semibold hover:bg-orange-50 active:scale-[0.97] transition"
                         >

@@ -17,9 +17,12 @@ import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
+
 import "../Navbar/collapse.css";
 
 export default function Navbar() {
+
+  const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
@@ -30,8 +33,18 @@ export default function Navbar() {
   const profileMenuRef = useRef(null);
 
   const { cart, cartCount, deleteFromCart } = useCart();
-  const { instance, accounts } = useMsal();
-  const isAuthenticated = useIsAuthenticated();
+  const { instance, accounts: msalAccounts } = useMsal();
+  const msalAuthenticated = useIsAuthenticated();
+
+  const isAuthenticated = isTestMode ? true : msalAuthenticated;
+
+  const accounts = isTestMode
+    ? [{
+        name: "Usuario QA",
+        username: "qa@test.com"
+      }]
+    : msalAccounts;
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -51,8 +64,13 @@ export default function Navbar() {
   const goPerfil = () => navigate("/perfil");
 
   const handleLogin = () => navigate("/login");
-  const handleLogout = () =>
-    instance.logoutRedirect({ postLogoutRedirectUri: "/" });
+  const handleLogout = () => {
+    if (isTestMode) {
+      window.location.reload();
+    } else {
+      instance.logoutRedirect({ postLogoutRedirectUri: "/" });
+    }
+  };
 
   const openProductosMenu = () => setProductsMenuOpen(!productsMenuOpen);
 
@@ -138,7 +156,7 @@ export default function Navbar() {
             >
               <ShoppingCartIcon className="w-6 h-6" />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                <span data-testid="cart-count" className="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">
                   {cartCount}
                 </span>
               )}
@@ -149,6 +167,7 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <button
                   onClick={handleLogin}
+                  data-testid="login-btn"
                   className="px-4 py-1.5 bg-orange-600 text-white rounded-full text-sm"
                 >
                   Iniciar sesión

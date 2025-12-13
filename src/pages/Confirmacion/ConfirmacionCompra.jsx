@@ -15,7 +15,12 @@ export default function ConfirmacionCompra() {
   const endpointClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
   const endpointOrdenes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
 
-  const userEmail = accounts[0]?.username;
+  const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+
+  const userEmail = isTestMode
+    ? "qa@test.com"
+    : accounts[0]?.username;
+
 
   // ==== TODOS LOS HOOKS VAN AQUÍ, SIN CONDICIONES ====
   const [idCliente, setIdCliente] = useState(null);
@@ -42,6 +47,10 @@ export default function ConfirmacionCompra() {
   // TOKEN
   // =======================================
   const obtenerToken = async () => {
+
+      if (isTestMode) {
+          return "TEST_TOKEN";
+        }
     try {
       const accounts = msalInstance.getAllAccounts();
       if (accounts.length === 0) return null;
