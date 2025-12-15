@@ -25,7 +25,6 @@ export const RegistrarClienteService = async () => {
 
     return await res.json();
   } catch (error) {
-    console.error("Error en RegistrarClienteService:", error);
     throw error;
   }
 };

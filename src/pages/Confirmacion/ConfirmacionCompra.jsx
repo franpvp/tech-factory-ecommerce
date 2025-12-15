@@ -72,7 +72,6 @@ export default function ConfirmacionCompra() {
         throw silentErr;
       }
     } catch (err) {
-      console.error("Error token:", err);
       return null;
     }
   };
@@ -215,7 +214,7 @@ export default function ConfirmacionCompra() {
               {/* Envío */}
               <div className="flex justify-between text-sm mb-2">
                 <span className="text-slate-600">Envío</span>
-                <span className="font-semibold text-green-600">Gratis</span>
+                <span className="font-semibold text-green-600">{COSTO_ENVIO}</span>
               </div>
 
               {/* Total */}

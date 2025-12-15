@@ -9,7 +9,7 @@ const categorias = [
   { slug: "procesadores", nombre: "Procesadores" },
   { slug: "almacenamiento", nombre: "Almacenamiento (SSD / NVMe)" },
   { slug: "fuentes-poder", nombre: "Fuentes de Poder" },
-  { slug: "ram", nombre: "Memorias RAM" },
+  { slug: "placas-madre", nombre: "Placas Madre" },
   { slug: "refrigeracion", nombre: "Refrigeración" },
 ];
 

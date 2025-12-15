@@ -30,9 +30,6 @@ export default function AdminRoles() {
     descripcion: "",
   });
 
-  // ===============================
-  // CARGAR ROLES
-  // ===============================
   useEffect(() => {
     const cargar = async () => {
       try {

@@ -1,12 +1,23 @@
 import { Navigate } from "react-router-dom";
-import { useAzureUser } from "../hooks/useAzureUser";
+import { useAuth } from "../context/AuthContext";
 
 export default function ProtectedDashboardRoute({ children }) {
-  const user = useAzureUser();
+  const { rol, loadingRol } = useAuth();
 
-  if (!user || !user.isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (loadingRol) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <span className="text-slate-500 text-sm">Cargando permisos...</span>
+      </div>
+    );
   }
 
+  if (!rol) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (rol !== "ADMIN") {
+    return <Navigate to="/" replace />;
+  }
   return children;
 }

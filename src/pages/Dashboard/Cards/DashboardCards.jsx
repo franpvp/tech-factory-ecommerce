@@ -5,25 +5,21 @@ export function DashboardCards({ usuariosActivos, ventasCorrectas, ordenesHoy })
       title: "Usuarios Activos",
       value: usuariosActivos,
       icon: "🟢",
-      trend: "+5%",
     },
     {
       title: "Órdenes Hoy",
       value: ordenesHoy.reduce((sum, r) => sum + r.cantidad, 0),
       icon: "📦",
-      trend: "+3%",
     },
     {
       title: "Pagos Correctos Hoy",
       value: ventasCorrectas,
       icon: "💰",
-      trend: "+8%",
     },
     {
       title: "Pagos Pendientes",
       value: ordenesHoy.find(o => o.estado === "PAGO_PENDIENTE")?.cantidad || 0,
       icon: "⏳",
-      trend: "-2%",
     }
   ];
 
@@ -45,10 +41,6 @@ export function DashboardCards({ usuariosActivos, ventasCorrectas, ordenesHoy })
               <h2 className="text-xl font-semibold text-white">{c.value}</h2>
             </div>
           </div>
-
-          <p className={`mt-4 text-sm ${c.trend.startsWith("+") ? "text-green-400" : "text-red-400"}`}>
-            {c.trend}
-          </p>
         </div>
       ))}
     </div>

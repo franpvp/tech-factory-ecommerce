@@ -34,7 +34,6 @@ export async function obtenerToken() {
     }
 
   } catch (error) {
-    console.error("Error obteniendo token:", error);
     return null;
   }
 }

@@ -36,7 +36,6 @@ const obtenerToken = async () => {
       throw silentErr;
     }
   } catch (err) {
-    console.error("Error token:", err);
     return null;
   }
 };
@@ -137,7 +136,6 @@ export default function AdminProductos() {
       setProductos((prev) => [...prev, nuevoProducto]);
       setCreateOpen(false);
     } catch (error) {
-      console.error("Error creando producto:", error);
       alert("Error al crear producto");
     }
   };
@@ -196,7 +194,6 @@ export default function AdminProductos() {
 
       setEditId(null);
     } catch (error) {
-      console.error("Error actualizando producto:", error);
       alert("Error guardando cambios");
     }
   };
@@ -216,7 +213,6 @@ export default function AdminProductos() {
 
       setProductos((prev) => prev.filter((p) => p.id !== id));
     } catch (error) {
-      console.error("Error eliminando producto:", error);
       alert("No se pudo eliminar el producto");
     }
   };

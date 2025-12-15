@@ -66,7 +66,6 @@ export function CartProvider({ children }) {
     const id = producto.idProducto ?? producto.id;
 
     if (!id) {
-      console.error("❌ Error: producto no tiene idProducto ni id:", producto);
       return;
     }
 

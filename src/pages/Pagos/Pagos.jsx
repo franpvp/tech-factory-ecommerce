@@ -42,7 +42,6 @@ async function obtenerToken(instance, accounts) {
     }
 
   } catch (err) {
-    console.error("Error obteniendo token:", err);
     return null;
   }
 }
@@ -71,14 +70,12 @@ export default function Pagos() {
   // === Obtener cliente por email ===
   useEffect(() => {
      if (!userEmail) {
-        console.warn("userEmail es null, no se busca cliente");
         return;
       }
 
     const fetchCliente = async () => {
       try {
         const token = await obtenerToken(instance, accounts);
-        console.log("Token usado:", token);
         if (!token) throw new Error("No se pudo obtener token");
 
         const URL = `${endpointObtenerClientes}/email/${encodeURIComponent(userEmail)}`;
@@ -97,7 +94,7 @@ export default function Pagos() {
         setIdCliente(data.id);
 
       } catch (e) {
-        console.error("🔥 Error obteniendo cliente:", e);
+        console.error("Error obteniendo cliente:", e);
       }
     };
 
@@ -107,16 +104,12 @@ export default function Pagos() {
   // === Cleanup de polling & timeout al desmontar ===
   useEffect(() => {
     return () => {
-      console.log("🛑 Cleanup ejecutado: deteniendo polling y timeout...");
-
       if (pollInterval) {
         clearInterval(pollInterval);
-        console.log("✔ Polling detenido");
       }
 
       if (timeoutId) {
         clearTimeout(timeoutId);
-        console.log("✔ Timeout detenido");
       }
     };
   }, [pollInterval, timeoutId]);
@@ -207,7 +200,6 @@ export default function Pagos() {
     const token = await obtenerToken(instance, accounts);
 
     if (!token) {
-      console.error("❌ No se pudo obtener token para polling.");
       return;
     }
 
@@ -222,9 +214,7 @@ export default function Pagos() {
         });
 
         if (!res.ok) return;
-
         const data = await res.json();
-        console.log("📡 Estado orden:", data);
 
         const estado = data.estadoOrden
           ?.toUpperCase()
@@ -248,7 +238,7 @@ export default function Pagos() {
         }
 
       } catch (error) {
-        console.error("❌ Error en polling:", error);
+        console.error("Error en polling:", error);
       }
     }, 2000);
 
@@ -278,13 +268,9 @@ export default function Pagos() {
       setLoading(true);
 
       const token = await obtenerToken(instance, accounts);
-      console.log("Token usado:", token);
       if (!token) throw new Error("No se pudo obtener token de autenticación");
 
       const url = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
-
-
-       console.log(JSON.stringify(payload))
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -303,8 +289,6 @@ export default function Pagos() {
       setWaitingForPayment(true);
 
       const timeout = setTimeout(() => {
-        console.warn("⏳ Timeout: no hubo respuesta en 10s.");
-
         if (pollInterval) clearInterval(pollInterval);
 
         navigate("/pago-fallido", {
@@ -318,7 +302,6 @@ export default function Pagos() {
       pollEstadoOrden(data.idOrden);
 
     } catch (err) {
-      console.error("Error submitPayment:", err);
       setApiError("Ocurrió un error al procesar el pago. Intenta nuevamente.");
     } finally {
       setLoading(false);
@@ -393,7 +376,7 @@ export default function Pagos() {
                   name="cardName"
                   value={form.cardName}
                   onChange={handleChange}
-                  placeholder="Juan Pérez"
+                  placeholder="Ingrese nombre del titular"
                   className={`w-full mt-1 p-3 border rounded-xl ${
                     errors.cardName ? "border-red-500" : "border-slate-300"
                   }`}

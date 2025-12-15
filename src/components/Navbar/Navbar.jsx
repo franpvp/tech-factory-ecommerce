@@ -17,7 +17,6 @@ import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 
-
 import "../Navbar/collapse.css";
 
 export default function Navbar() {
@@ -262,11 +261,35 @@ export default function Navbar() {
             </div>
 
             <div
-              onClick={() => navigate("/categorias/ram")}
+              onClick={() => navigate("/categorias/fuentes-poder")}
               className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
             >
-              <h3 className="font-semibold">RAM</h3>
-              <p className="text-xs text-slate-500">DDR4 • DDR5</p>
+              <h3 className="font-semibold">Fuentes de Poder</h3>
+              <p className="text-xs text-slate-500">Certificación • Potencia</p>
+            </div>
+
+            <div
+              onClick={() => navigate("/categorias/gabinetes")}
+              className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
+            >
+              <h3 className="font-semibold">Gabinetes</h3>
+              <p className="text-xs text-slate-500">ATX • Micro-ATX • RGB</p>
+            </div>
+
+            <div
+              onClick={() => navigate("/categorias/placas-madres")}
+              className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
+            >
+              <h3 className="font-semibold">Placas Madres</h3>
+              <p className="text-xs text-slate-500">Intel • AMD • Chipsets</p>
+            </div>
+
+            <div
+              onClick={() => navigate("/categorias/refrigeracion")}
+              className="p-4 border rounded-xl hover:bg-orange-50 cursor-pointer"
+            >
+              <h3 className="font-semibold">Refrigeración</h3>
+              <p className="text-xs text-slate-500">Aire • Líquida • Ventiladores</p>
             </div>
           </div>
         </div>
@@ -386,18 +409,64 @@ export default function Navbar() {
 
                   <li
                     onClick={() => {
-                      navigate("/categorias/ram");
+                      navigate("/categorias/fuentes-poder");
                       setSidebarOpen(false);
                     }}
                     className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
                       ${
-                        isActiveCategory("/categorias/ram")
+                        isActiveCategory("/categorias/fuentes-poder")
                           ? "bg-orange-100 text-orange-700"
                           : "hover:bg-orange-50 hover:text-orange-600"
                       }`}
                   >
-                    RAM
+                    Fuentes de Poder
                   </li>
+
+                  <li
+                    onClick={() => {
+                      navigate("/categorias/gabinetes");
+                      setSidebarOpen(false);
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
+                      ${
+                        isActiveCategory("/categorias/gabinetes")
+                          ? "bg-orange-100 text-orange-700"
+                          : "hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                  >
+                    Gabinetes
+                  </li>
+
+                  <li
+                    onClick={() => {
+                      navigate("/categorias/placas-madres");
+                      setSidebarOpen(false);
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
+                      ${
+                        isActiveCategory("/categorias/placas-madres")
+                          ? "bg-orange-100 text-orange-700"
+                          : "hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                  >
+                    Placas Madres
+                  </li>
+
+                  <li
+                    onClick={() => {
+                      navigate("/categorias/refrigeracion");
+                      setSidebarOpen(false);
+                    }}
+                    className={`px-3 py-2 rounded-lg cursor-pointer transition font-medium
+                      ${
+                        isActiveCategory("/categorias/refrigeracion")
+                          ? "bg-orange-100 text-orange-700"
+                          : "hover:bg-orange-50 hover:text-orange-600"
+                      }`}
+                  >
+                    Refrigeración
+                  </li>
+                  
 
                 </ul>
               </div>

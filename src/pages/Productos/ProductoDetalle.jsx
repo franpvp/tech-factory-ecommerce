@@ -41,9 +41,6 @@ export default function ProductoDetalle() {
 
   const scrollRef = useRef(null);
 
-  // ======================================================
-  // TOKEN EXACTAMENTE COMO RegistrarClienteService
-  // ======================================================
   const obtenerToken = async () => {
 
        const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
@@ -73,14 +70,10 @@ export default function ProductoDetalle() {
         throw silentError;
       }
     } catch (err) {
-      console.error("Error obteniendo token:", err);
       return null;
     }
   };
 
-  // ======================================================
-  // 1. FETCH PRODUCTO
-  // ======================================================
   useEffect(() => {
     const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
 
@@ -96,7 +89,6 @@ export default function ProductoDetalle() {
         setProducto(data);
         setImagenSeleccionada(data.imagenUrl);
       } catch (error) {
-        console.error("Error cargando producto:", error);
         setProducto(null);
       } finally {
         setLoading(false);
@@ -106,9 +98,6 @@ export default function ProductoDetalle() {
     fetchProducto();
   }, [id]);
 
-  // ======================================================
-  // 2. FETCH RELACIONADOS
-  // ======================================================
   useEffect(() => {
     if (!producto) return;
 
@@ -143,9 +132,6 @@ export default function ProductoDetalle() {
     fetchRelacionados();
   }, [producto]);
 
-  // ======================================================
-  // 3. LOADING
-  // ======================================================
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-100">
@@ -165,9 +151,6 @@ export default function ProductoDetalle() {
     );
   }
 
-  // ======================================================
-  // 4. UI PRINCIPAL MEJORADA
-  // ======================================================
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <Navbar />
@@ -250,7 +233,6 @@ export default function ProductoDetalle() {
               {/* COMPRAR AHORA */}
               <button
                 onClick={() => {
-                  // Agregar al carrito si no existe
                   addToCart({
                     idProducto: producto.id,
                     nombre: producto.nombre,
@@ -258,8 +240,6 @@ export default function ProductoDetalle() {
                     imagenUrl: producto.imagenUrl,
                     cantidad: 1,
                   });
-
-                  // Llevar al carrito de inmediato
                   navigate("/carrito");
                 }}
                 className="border border-orange-600 text-orange-600 py-3 rounded-xl 

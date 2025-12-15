@@ -44,13 +44,8 @@ function App() {
 
   useEffect(() => {
     if (accounts.length > 0) {
-      RegistrarClienteService()
-        .then((data) => {
-          console.log("✔ Cliente sincronizado:", data);
-        })
-        .catch((err) => {
-          console.error("Error al sincronizar cliente:", err);
-        });
+      RegistrarClienteService().catch(() => {
+      });
     }
   }, [accounts]);
 
