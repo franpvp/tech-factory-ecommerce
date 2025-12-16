@@ -15,9 +15,6 @@ export default function AdminUsuarios() {
   const endpointUsuarios = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
   const { refetchRol } = useAuth();
 
-  // ==========================================================
-  // TOKEN
-  // ==========================================================
   const obtenerToken = async () => {
     try {
       const accounts = msalInstance.getAllAccounts();

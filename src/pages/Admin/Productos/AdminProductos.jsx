@@ -11,9 +11,6 @@ import { getCategorias } from "../../../services/CategoriasService";
 import { msalInstance } from "../../../auth/authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 
-// =======================================
-// TOKEN
-// =======================================
 const obtenerToken = async () => {
   try {
     const accounts = msalInstance.getAllAccounts();
