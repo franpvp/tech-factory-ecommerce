@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { useMsal } from "@azure/msal-react";
+import { ENV } from '../config/env';
 
 const AuthContext = createContext();
 
@@ -21,7 +22,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const email = accounts[0].username;
 
-      const url = `${import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES}/email/${encodeURIComponent(email)}`;
+      const url = `${ENV.SERVICE_CLIENTES}/email/${encodeURIComponent(email)}`;
 
       const res = await fetch(url);
       if (!res.ok) {

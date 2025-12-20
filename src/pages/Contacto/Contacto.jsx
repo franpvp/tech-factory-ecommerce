@@ -14,7 +14,7 @@ export default function Contacto() {
   const [errMsg, setErrMsg] = useState("");
 
   const obtenerToken = async () => {
-    const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+    const isTestMode = import.meta.env.VITE_TEST_MODE;
     if (isTestMode) return "TEST_TOKEN";
 
     const accounts = msalInstance.getAllAccounts();

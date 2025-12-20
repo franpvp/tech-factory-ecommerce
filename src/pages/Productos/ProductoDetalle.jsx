@@ -7,7 +7,8 @@ import { msalInstance } from "../../auth/authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import "../../components/Navbar/collapse.css";
 
-// === Skeleton Loader para Página de Producto ===
+import { ENV } from "../../config/env";
+
 const ProductoSkeleton = () => (
   <div className="animate-pulse grid grid-cols-1 md:grid-cols-2 gap-10 mt-10">
     <div className="flex flex-col gap-4">
@@ -43,10 +44,10 @@ export default function ProductoDetalle() {
 
   const obtenerToken = async () => {
 
-       const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
-          if (isTestMode) {
-              return "TEST_TOKEN";
-            }
+    const isTestMode = ENV.TEST_MODE;
+      if (isTestMode) {
+          return "TEST_TOKEN";
+        }
     try {
       const accounts = msalInstance.getAllAccounts();
       if (accounts.length === 0) return null;
@@ -75,7 +76,7 @@ export default function ProductoDetalle() {
   };
 
   useEffect(() => {
-    const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
+    const endpoint = ENV.SERVICE_PRODUCTOS;
 
     async function fetchProducto() {
       try {
@@ -101,7 +102,7 @@ export default function ProductoDetalle() {
   useEffect(() => {
     if (!producto) return;
 
-    const endpoint = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_PRODUCTOS;
+    const endpoint = ENV.SERVICE_PRODUCTOS;
 
     async function fetchRelacionados() {
       try {

@@ -5,6 +5,7 @@ import { useCart } from "../../context/CartContext";
 import Navbar from "../../components/Navbar/Navbar";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
+import { ENV } from "../../config/env";
 
 import PaymentLoading from "../../components/Loading/PaymentLoading";
 
@@ -12,7 +13,7 @@ const COSTO_ENVIO = 4990;
 
 async function obtenerToken(instance, accounts) {
 
-    const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+    const isTestMode = ENV.TEST_MODE;
     if (isTestMode) {
         return "TEST_TOKEN";
       }
@@ -48,7 +49,7 @@ async function obtenerToken(instance, accounts) {
 
 export default function Pagos() {
 
-  const endpointObtenerClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
+  const endpointObtenerClientes = ENV.SERVICE_CLIENTES;
   const navigate = useNavigate();
   const { instance, accounts } = useMsal();
 
@@ -56,7 +57,7 @@ export default function Pagos() {
   const [timeoutId, setTimeoutId] = useState(null);
   const [pollInterval, setPollInterval] = useState(null);
 
-  const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+  const isTestMode = ENV.TEST_MODE;
 
   const userEmail = isTestMode
     ? "qa@test.com"
@@ -67,7 +68,6 @@ export default function Pagos() {
 
   const [idCliente, setIdCliente] = useState(null);
 
-  // === Obtener cliente por email ===
   useEffect(() => {
      if (!userEmail) {
         return;
@@ -193,7 +193,7 @@ export default function Pagos() {
 
   const pollEstadoOrden = async (idOrdenLocal) => {
 
-    const endpointOrdenes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
+    const endpointOrdenes = ENV.SERVICE_ORDENES;
     const url = `${endpointOrdenes}/cliente/${idCliente}/ultima`;
 
     // Obtener token ANTES de comenzar el intervalo
@@ -270,7 +270,7 @@ export default function Pagos() {
       const token = await obtenerToken(instance, accounts);
       if (!token) throw new Error("No se pudo obtener token de autenticación");
 
-      const url = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
+      const url = ENV.SERVICE_ORDENES;
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -298,7 +298,6 @@ export default function Pagos() {
 
       setTimeoutId(timeout);
 
-      // Inicia polling
       pollEstadoOrden(data.idOrden);
 
     } catch (err) {

@@ -15,7 +15,7 @@ export default function ConfirmacionCompra() {
   const endpointClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
   const endpointOrdenes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
 
-  const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+  const isTestMode = import.meta.env.VITE_TEST_MODE;
 
   const userEmail = isTestMode
     ? "qa@test.com"

@@ -16,12 +16,13 @@ import {
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
+import { ENV } from "../../config/env";
 
 import "../Navbar/collapse.css";
 
 export default function Navbar() {
 
-  const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+  const isTestMode = ENV.TEST_MODE;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);

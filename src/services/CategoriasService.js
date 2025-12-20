@@ -1,8 +1,9 @@
 import { msalInstance } from "../auth/authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { obtenerToken } from "../auth/tokenProvider";
-const BASE_URL = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_CATEGORIAS;
 
+import { ENV } from "../config/env";
+const BASE_URL = ENV.SERVICE_CATEGORIAS;
 
 export async function getCategorias() {
   const res = await fetch(BASE_URL);

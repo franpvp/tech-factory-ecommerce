@@ -1,12 +1,11 @@
 import { msalInstance } from "./authConfig";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 
-const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+const isTestMode = import.meta.env.VITE_TEST_MODE;
 const SCOPES = ["api://967bfb43-f7a4-47db-8502-588b15908297/access"];
 
 export async function obtenerToken() {
 
-  // 🟢 MODO TEST → token fijo
   if (isTestMode) {
     return "TEST_TOKEN";
   }

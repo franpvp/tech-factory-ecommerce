@@ -9,19 +9,19 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { msalInstance } from "../../auth/authConfig";
+import { ENV } from "../../config/env";
 
 import { UserIcon } from "@heroicons/react/24/solid";
 
 const ORDERS_PER_PAGE = 4;
 
 export default function Perfil() {
-  const navigate = useNavigate();
   const { accounts } = useMsal();
 
   const userEmail = accounts[0]?.username;
 
-  const endpointClientes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_OBTENER_CLIENTES;
-  const endpointOrdenes = import.meta.env.VITE_SERVICE_ENDPOINT_BFF_ORDENES;
+  const endpointClientes = ENV.SERVICE_CLIENTES;
+  const endpointOrdenes = ENV.SERVICE_ORDENES;
 
   const [cliente, setCliente] = useState(null);
   const [pedidos, setPedidos] = useState([]);
@@ -30,7 +30,7 @@ export default function Perfil() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const obtenerToken = async () => {
-    const isTestMode = import.meta.env.VITE_TEST_MODE === "true";
+    const isTestMode = ENV.TEST_MODE;
     if (isTestMode) return "TEST_TOKEN";
 
     try {
